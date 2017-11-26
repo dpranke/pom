@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from . import string_literal
+from . import lit
 
 
 class Printer(object):
@@ -27,7 +27,7 @@ class Printer(object):
         rules = []
         max_rule_len = 0
         max_choice_len = 0
-        for rule_name, node in self.grammar.rules.items():
+        for _, rule_name, node in self.grammar.rules:
             cs = []
             max_rule_len = max(len(rule_name), max_rule_len)
             single_line_str = self._proc(node)
@@ -85,7 +85,7 @@ class Printer(object):
         return '%s:%s' % (self._proc(node[1]), node[2])
 
     def _lit_(self, node):
-        return string_literal.encode(node[1])
+        return lit.encode(node[1])
 
     def _ll_arr_(self, node):
         return '[%s]' % ', '.join(self._proc(el) for el in node[1])
@@ -116,8 +116,6 @@ class Printer(object):
     def _ll_var_(self, node):
         return node[1]
 
-    def _range_(self, node):
-        return '%s..%s' % (self._proc(node[1]), self._proc(node[2]))
     def _not_(self, node):
         return '~%s' % self._proc(node[1])
 
@@ -126,6 +124,12 @@ class Printer(object):
 
     def _post_(self, node):
         return '%s%s' % (self._proc(node[1]), node[2])
+
+    def _range_(self, node):
+        return '%s..%s' % (self._proc(node[1]), self._proc(node[2]))
+
+    def _scope_(self, node):
+        return ' '.join(self._proc(e) for e in node[1])
 
     def _seq_(self, node):
         return ' '.join(self._proc(e) for e in node[1])

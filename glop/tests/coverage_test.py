@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import unittest
+
 from io import StringIO
 
 from glop import tool
@@ -54,3 +56,6 @@ class CoverageTestMain(CoverageTestMixin, main_test.TestMain):
 
 class CoverageTestInterpreter(CoverageTestMixin, main_test.TestInterpreter):
     pass
+
+if __name__ == '__main__':
+    unittest.main()

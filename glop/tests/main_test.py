@@ -166,6 +166,10 @@ class TestMain(UnitTestMixin, CheckMixin, unittest.TestCase):
         self.check_cmd(['missing.g'], returncode=1,
                        err='Error: no such file: "missing.g"\n')
 
+    def test_input_is_expr(self):
+        self.check_cmd(['-e', SIMPLE_GRAMMAR], stdin='hello, world\n',
+                       returncode=0)
+
     def test_input_on_stdin(self):
         files = {
             'simple.g': SIMPLE_GRAMMAR,

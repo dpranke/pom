@@ -46,11 +46,23 @@ def main(host=None, argv=None):
             return err
         if args.pretty_print:
             return _pretty_print_grammar(host, args, grammar)
+
         if args.ast:
-            _write(host, args.output, json.dumps(grammar.ast, indent=2) + '\n')
+            contents = json.dumps(grammar.ast, indent=2) + '\n'
+            _write(host, args.output, contents)
             return 0
+
         if args.compile:
-            return _write_compiled_grammar(host, args, grammar)
+            comp = Compiler(grammar, args.class_name, args.main, args.memoize)
+            contents, err = comp.compile()
+            if err:
+                host.print_(err, stream=host.stderr)
+                return 1
+            _write(host, args.output, contents)
+            if args.output != '-':
+                host.make_executable(args.output)
+            return 0
+
         return _interpret_grammar(host, args, grammar)
 
     except KeyboardInterrupt:
@@ -73,37 +85,39 @@ def _parse_args(host, argv):
     ap = ArgumentParser(prog='glop', add_help=False)
     ap.add_argument('-a', '--ast', action='store_true')
     ap.add_argument('-c', '--compile', action='store_true')
+    ap.add_argument('-e', '--expr', action='store')
     ap.add_argument('-h', '--help', action='store_true')
     ap.add_argument('-i', '--input', default='-')
     ap.add_argument('-o', '--output')
     ap.add_argument('-p', '--pretty-print', action='store_true')
     ap.add_argument('-V', '--version', action='store_true')
     ap.add_argument('--class-name', default='Parser')
-    ap.add_argument('--memoize', action='store_true', default=True,
-                    help='memoize intermediate results (on by default)')
+    ap.add_argument('--memoize', action='store_true', default=False,
+                    help='memoize intermediate results (off by default)')
     ap.add_argument('--no-memoize', dest='memoize', action='store_false')
-    ap.add_argument('--main', action='store_true', default=True,
-                    help='generate a main() wrapper (on by default)')
+    ap.add_argument('--main', action='store_true', default=False,
+                    help='generate a main() wrapper (off by default)')
     ap.add_argument('--no-main', dest='main', action='store_false')
-    ap.add_argument('grammar')
+    ap.add_argument('grammar', nargs='?')
 
     args = ap.parse_args(argv)
 
     USAGE = '''\
-usage: glop [-chpV] [-i file] [-o file] grammar
+usage: glop [-achpV] [-e expr] [-i file] [-o file] [grammar]
 
     -a, --ast                dump the ast of the parsed input
     -c, --compile            compile grammar instead of interpreting it
+    -e, --expr EXPR          use the provided expression as a grammar
     -h, --help               show this message and exit
-    -i, --input              path to read input from
-    -o, --output             path to write output to
+    -i, --input FILE         file to read input from
+    -o, --output FILE        file to write output to
     -p, --pretty-print       pretty-print grammar
     -V, --version            print current version (%s)
 
     --class-name CLASS_NAME  class name for the generated class when
                              compiling it (defaults to 'Parser')
-    --[no-]memoize           memoize intermedate results (on by default)
-    --[no-]main              generate a main() wrapper (on by default)
+    --[no-]memoize           memoize intermedate results (off by default)
+    --[no-]main              generate a main() wrapper (off by default)
 ''' % VERSION
 
     if args.version:
@@ -119,6 +133,10 @@ usage: glop [-chpV] [-i file] [-o file] grammar
         host.print_('Error: %s' % ap.message, stream=host.stderr)
         return None, ap.status
 
+    if not args.expr and not args.grammar:
+        host.print_(USAGE)
+        return None, 2
+
     if not args.output:
         if args.compile:
             args.output = host.splitext(host.basename(args.grammar))[0] + '.py'
@@ -129,19 +147,23 @@ usage: glop [-chpV] [-i file] [-o file] grammar
 
 
 def _read_grammar(host, args):
-    if not host.exists(args.grammar):
-        host.print_('Error: no such file: "%s"' % args.grammar,
-                    stream=host.stderr)
-        return None, 1
+    if args.expr:
+        parser = Parser(args.expr, '<expr>')
+        ast, err, nextpos = parser.parse()
+    else:
+        if not host.exists(args.grammar):
+            host.print_('Error: no such file: "%s"' % args.grammar,
+                        stream=host.stderr)
+            return None, 1
 
-    try:
-        grammar_txt = host.read_text_file(args.grammar)
-    except Exception as e:
-        host.print_('Error: %s' % str(e), stream=host.stderr)
-        return None, 1
+        try:
+            grammar_txt = host.read_text_file(args.grammar)
+        except Exception as e:
+            host.print_('Error: %s' % str(e), stream=host.stderr)
+            return None, 1
 
-    parser = Parser(grammar_txt, args.grammar)
-    ast, err, nextpos = parser.parse()
+        parser = Parser(grammar_txt, args.grammar)
+        ast, err, nextpos = parser.parse()
     if err:
         host.print_(err, stream=host.stderr)
         return None, 1
@@ -159,17 +181,6 @@ def _pretty_print_grammar(host, args, grammar):
         host.print_(err, stream=host.stderr)
         return 1
     _write(host, args.output, contents)
-    return 0
-
-
-def _write_compiled_grammar(host, args, grammar):
-    comp = Compiler(grammar, args.class_name, args.main, args.memoize)
-    contents, err = comp.compile()
-    if err:
-        host.print_(err, stream=host.stderr)
-        return 1
-    _write(host, args.output, contents)
-    host.make_executable(args.output)
     return 0
 
 

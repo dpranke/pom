@@ -1,0 +1,5 @@
+rule stamp
+  command = touch $out
+
+build ninja.stamp : stamp ninja.inp
+
