@@ -32,18 +32,9 @@ class Parser(object):
         return self.val, None, self.pos
 
     def _r_grammar(self):
-        self._h_seq([self._s_grammar_s0,
+        self._h_seq([lambda: self._h_opt(lambda: self._h_ch('a')),
                      self._r_end,
-                     self._s_grammar_s2])
-
-    def _s_grammar_s0(self):
-        self._h_opt(self._s_grammar_s0_p)
-
-    def _s_grammar_s0_p(self):
-        self._h_ch('a')
-
-    def _s_grammar_s2(self):
-        self._h_succeed('ok')
+                     lambda: self._h_succeed('ok')])
 
     def _r_end(self):
         if self.pos == self.end:

@@ -34,21 +34,12 @@ class Parser(object):
 
     def _r_grammar(self):
         self._h_scope('grammar', [lambda: self._h_ch('"'),
-                                  self._s_grammar_s1,
+                                  lambda: self._h_bind(lambda: self._h_star(lambda: self._h_seq([lambda: self._h_not(lambda: self._h_ch('"')),
+                     self._r_anything]), []), 'as'),
                                   lambda: self._h_ch('"'),
                                   lambda: self._h_ch('\n'),
                                   self._r_end,
                                   lambda: self._h_succeed(self._f_cat(self._h_get('as')))])
-
-    def _s_grammar_s1(self):
-        self._h_bind(self._s_grammar_s1_l, 'as')
-
-    def _s_grammar_s1_l(self):
-        self._h_star(self._s_grammar_s1_l_p, [])
-
-    def _s_grammar_s1_l_p(self):
-        self._h_seq([lambda: self._h_not(lambda: self._h_ch('"')),
-                     self._r_anything])
 
     def _r_anything(self):
         if self.pos < self.end:

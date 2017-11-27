@@ -36,7 +36,7 @@ class Compiler(object):
         self.grammar = self.grammar.flatten(self._should_flatten)
 
         for _, rule, node in self.grammar.rules:
-            self._methods[rule] = self._gen(node)
+            self._methods[rule] = self._gen(node, as_callable=False)
 
         imports = self.templates.IMPORTS
         for name in self._needed:
@@ -92,24 +92,32 @@ class Compiler(object):
                 methods += '    %s\n' % (l,)
         return methods
 
-    def _gen(self, node, as_callable=False):
+    def _gen(self, node, as_callable):
         fn = getattr(self, '_%s_' % node[0])
-        if not self._should_flatten(node):
-            return fn(node, as_callable)
-        return fn(node)
+        return fn(node, as_callable)
+
+    # Using a MAX_DEPTH of three ensures that we don't unroll expressions
+    # too much; in particular, by making sure that any of the nodes that
+    # contain more than one child are set to MAX_DEPTH, we don't nest
+    # two of them at once. This keeps things fairly readable.
+    _MAX_DEPTH = 3
+
+    def _depth(self, node):
+        ty = node[0]
+        if ty in ('choice', 'scope', 'seq'):
+            return max(self._depth(n) for n in node[1]) + self._MAX_DEPTH
+        elif ty in ('label', 'not', 'opt', 'paren', 'plus', 'star'):
+            return self._depth(node[1]) + 1
+        else:
+            return 1
 
     def _should_flatten(self, node):
-        return node[0] not in ('action', 'apply', 'lit', 'label', 'not', 'opt',
-                               'paren', 'plus', 'range', 'star')
+        return self._depth(node) > self._MAX_DEPTH
 
     def _inv(self, name, arg_str):
         if name in self._natives:
             self._need(name)
         return 'self.%s(%s)' % (name, arg_str)
-
-    def _callable(self, node):
-        assert not self._should_flatten(node)
-        return self._gen(node, as_callable=True)
 
     def _need(self, name):
         self._needed.add(name)
@@ -118,19 +126,19 @@ class Compiler(object):
 
     def _args(self, args, indent):
         sep = ',\n' + ' ' * indent
-        return '[' + sep.join(self._callable(arg) for arg in args) + ']'
+        return '[' + sep.join(self._gen(arg, as_callable=True) for arg in args) + ']'
 
     #
     # Handlers for each AST node follow.
     #
 
-    def _action_(self, node, as_callable=False):
-        expr = self._inv('_h_succeed', self._gen(node[1]))
+    def _action_(self, node, as_callable):
+        expr = self._inv('_h_succeed', self._gen(node[1], as_callable=True))
         if as_callable:
             return 'lambda: ' + expr
         return [expr]
 
-    def _apply_(self, node, as_callable=False):
+    def _apply_(self, node, as_callable):
         rule_name = node[1]
         if node[1] not in self.grammar.rule_names:
             self._need(rule_name)
@@ -140,20 +148,27 @@ class Compiler(object):
         else:
             return ['%s()' % expr]
 
-    def _choice_(self, node):
-        return [self._inv('_h_choose', self._args(node[1], indent=24))]
+    def _choice_(self, node, as_callable):
+        expr = self._inv('_h_choose', self._args(node[1], indent=24))
+        if as_callable:
+            return 'lambda: ' + expr
+        else:
+            return [expr]
 
-    def _empty_(self, _node):
-        return []
+    def _empty_(self, _node, as_callable):
+        if as_callable:
+            return ''
+        else:
+            return []
 
-    def _label_(self, node, as_callable=False):
+    def _label_(self, node, as_callable):
         var = lit.encode(node[2])
-        expr = self._inv('_h_bind', '%s, %s' % (self._callable(node[1]), var))
+        expr = self._inv('_h_bind', '%s, %s' % (self._gen(node[1], as_callable=True), var))
         if as_callable:
             return 'lambda: ' + expr
         return [expr]
 
-    def _lit_(self, node, as_callable=False):
+    def _lit_(self, node, as_callable):
         arg = lit.encode(node[1])
         if len(node[1]) == 1:
             expr = self._inv('_h_ch', arg)
@@ -164,35 +179,36 @@ class Compiler(object):
         else:
             return [expr]
 
-    def _ll_arr_(self, node):
-        return '[' + ', '.join(self._gen(e) for e in node[1]) + ']'
+    def _ll_arr_(self, node, _as_callable):
+        return '[' + ', '.join(self._gen(e, as_callable=True) for e in node[1]) + ']'
 
-    def _ll_call_(self, node):
-        args = [str(self._gen(e)) for e in node[1]]
+    def _ll_call_(self, node, _as_callable):
+        args = [str(self._gen(e, as_callable=True)) for e in node[1]]
         return '(' + ', '.join(args) + ')'
 
-    def _ll_getattr_(self, node):
+    def _ll_getattr_(self, node, _as_callable):
         return '.' + node[1]
 
-    def _ll_getitem_(self, node):
-        return '[' + str(self._gen(node[1])) + ']'
+    def _ll_getitem_(self, node, _as_callable):
+        return '[' + str(self._gen(node[1], as_callable=True)) + ']'
 
-    def _ll_lit_(self, node):
+    def _ll_lit_(self, node, _as_callable):
         return lit.encode(node[1])
 
-    def _ll_num_(self, node):
+    def _ll_num_(self, node, _as_callable):
         return node[1]
 
-    def _ll_plus_(self, node):
-        return '%s + %s' % (self._gen(node[1]), self._gen(node[2]))
+    def _ll_plus_(self, node, _as_callable):
+        return '%s + %s' % (self._gen(node[1], as_callable=True),
+                            self._gen(node[2], as_callable=True))
 
-    def _ll_qual_(self, node):
-        v = self._gen(node[1])
+    def _ll_qual_(self, node, _as_callable):
+        v = self._gen(node[1], as_callable=True)
         for p in node[2]:
-            v += self._gen(p)
+            v += self._gen(p, as_callable=True)
         return v
 
-    def _ll_var_(self, node):
+    def _ll_var_(self, node, _as_callable):
         name = node[1]
         if name in self._identifiers:
             return self._identifiers[name]
@@ -202,52 +218,65 @@ class Compiler(object):
         else:
             return self._inv('_h_get', "'%s'" % name)
 
-    def _not_(self, node, as_callable=False):
-        expr = self._inv('_h_not', self._callable(node[1]))
+    def _not_(self, node, as_callable):
+        expr = self._inv('_h_not', self._gen(node[1], as_callable=True))
         if as_callable:
             return 'lambda: ' + expr
         return [expr]
 
-    def _opt_(self, node, as_callable=False):
-        expr = self._inv('_h_opt', self._callable(node[1]))
+    def _opt_(self, node, as_callable):
+        expr = self._inv('_h_opt', self._gen(node[1], as_callable=True))
         if as_callable:
             return 'lambda: ' + expr
         return [expr]
 
-    def _paren_(self, node, as_callable=False):
+    def _paren_(self, node, as_callable):
         return self._gen(node[1], as_callable)
 
-    def _plus_(self, node, as_callable=False):
-        expr = self._inv('_h_plus', self._callable(node[1]))
+    def _plus_(self, node, as_callable):
+        expr = self._inv('_h_plus', self._gen(node[1], as_callable=True))
         if as_callable:
             return 'lambda: ' + expr
         return [expr]
 
-    def _pred_(self, node):
-        return ['v = %s' % self._gen(node[1]),
-                'if v:',
-                '    ' + self._inv('_h_succeed', 'v'),
-                'else:',
-                '    ' + self._inv('_h_fail', '')]
+    def _pred_(self, node, as_callable):
+        if as_callable:
+            return ('lambda: (lambda x: ' + self._inv('_h_succeed', 'x') +
+                    ' if x else ' + self._inv('_h_fail', '') +
+                    ')(%s)' % self._gen(node[1], as_callable=True))
+        else:
+            return ['v = %s' % self._gen(node[1], as_callable=True),
+                    'if v:',
+                    '    ' + self._inv('_h_succeed', 'v'),
+                    'else:',
+                    '    ' + self._inv('_h_fail', '')]
 
-    def _range_(self, node, as_callable=False):
+    def _range_(self, node, as_callable):
         expr = self._inv('_h_range', '%s, %s' % (lit.encode(node[1][1]),
                                                  lit.encode(node[2][1])))
         if as_callable:
             return 'lambda: ' + expr
         return [expr]
 
-    def _scope_(self, node):
-        return [self._inv('_h_scope', "'%s', %s" % (
-                                      node[2],
-                                      self._args(node[1],
-                                                 indent=27 + len(node[2]))))]
+    def _scope_(self, node, as_callable):
+        expr = self._inv('_h_scope', "'%s', %s" % (
+                   node[2],
+                   self._args(node[1], indent=27 + len(node[2]))))
+        if as_callable:
+            return 'lambda: ' + expr
+        else:
+            return [expr]
 
-    def _seq_(self, node):
-        return [self._inv('_h_seq', self._args(node[1], indent=21))]
+    def _seq_(self, node, as_callable):
+        expr = self._inv('_h_seq', self._args(node[1], indent=21))
+        if as_callable:
+            return 'lambda: ' + expr
+        else:
+            return [expr]
 
-    def _star_(self, node, as_callable=False):
-        expr = self._inv('_h_star', self._callable(node[1]) + ', []')
+    def _star_(self, node, as_callable):
+        expr = self._inv('_h_star',
+                         self._gen(node[1], as_callable=True) + ', []')
         if as_callable:
             return 'lambda: ' + expr
         return [expr]
