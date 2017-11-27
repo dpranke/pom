@@ -99,7 +99,7 @@ class Compiler(object):
         return fn(node)
 
     def _should_flatten(self, node):
-        if node[0] in ('label', 'not', 'paren', 'post'):
+        if node[0] in ('label', 'not', 'opt', 'paren', 'plus', 'post', 'star'):
             return False # self._should_flatten(node[1])
         return node[0] not in ('action', 'apply', 'lit', 'range')
 
@@ -211,8 +211,20 @@ class Compiler(object):
             return 'lambda: ' + expr
         return [expr]
 
+    def _opt_(self, node, as_callable=False):
+        expr = self._inv('_h_opt', self._callable(node[1]))
+        if as_callable:
+            return 'lambda: ' + expr
+        return [expr]
+
     def _paren_(self, node, as_callable=False):
         return self._gen(node[1], as_callable)
+
+    def _plus_(self, node, as_callable=False):
+        expr = self._inv('_h_plus', self._callable(node[1]))
+        if as_callable:
+            return 'lambda: ' + expr
+        return [expr]
 
     def _post_(self, node, as_callable=False):
         if node[2] == '?':
@@ -247,3 +259,9 @@ class Compiler(object):
 
     def _seq_(self, node):
         return [self._inv('_h_seq', self._args(node[1], indent=21))]
+
+    def _star_(self, node, as_callable=False):
+        expr = self._inv('_h_star', self._callable(node[1]) + ', []')
+        if as_callable:
+            return 'lambda: ' + expr
+        return [expr]

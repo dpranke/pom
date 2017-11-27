@@ -35,7 +35,7 @@ class Parser(object):
         self._h_scope('grammar', [lambda: self._h_bind(lambda: self._h_star(self._s_grammar_s0_l_p, []), 'vs'),
                                   self._r_sp,
                                   self._r_end,
-                                  lambda: self._h_succeed(self._h_get('vs'))])
+                                  lambda: self._h_succeed(['rules', self._h_get('vs')])])
         self._cache[("_r_grammar", pos)] = (
             self.val, self.failed, self.pos)
 
@@ -228,7 +228,7 @@ class Parser(object):
     def _s_post_expr_c0(self):
         self._h_scope('post_expr', [lambda: self._h_bind(self._r_prim_expr, 'e'),
                                     lambda: self._h_bind(self._r_post_op, 'op'),
-                                    lambda: self._h_succeed(['post', self._h_get('e'), self._h_get('op')])])
+                                    lambda: self._h_succeed([self._h_get('op'), self._h_get('e')])])
 
     def _r_post_op(self):
         r = self._cache.get(("_r_post_op", self.pos))
@@ -236,11 +236,23 @@ class Parser(object):
             self.val, self.failed, self.pos = r
             return
         pos = self.pos
-        self._h_choose([lambda: self._h_ch('?'),
-                        lambda: self._h_ch('*'),
-                        lambda: self._h_ch('+')])
+        self._h_choose([self._s_post_op_c0,
+                        self._s_post_op_c1,
+                        self._s_post_op_c2])
         self._cache[("_r_post_op", pos)] = (
             self.val, self.failed, self.pos)
+
+    def _s_post_op_c0(self):
+        self._h_seq([lambda: self._h_ch('?'),
+                     lambda: self._h_succeed('opt')])
+
+    def _s_post_op_c1(self):
+        self._h_seq([lambda: self._h_ch('*'),
+                     lambda: self._h_succeed('star')])
+
+    def _s_post_op_c2(self):
+        self._h_seq([lambda: self._h_ch('+'),
+                     lambda: self._h_succeed('plus')])
 
     def _r_prim_expr(self):
         r = self._cache.get(("_r_prim_expr", self.pos))

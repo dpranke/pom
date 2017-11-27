@@ -119,6 +119,15 @@ class Printer(object):
     def _not_(self, node):
         return '~%s' % self._proc(node[1])
 
+    def _opt_(self, node):
+        return '%s?' % self._proc(node[1])
+
+    def _paren_(self, node):
+        return '(' + self._proc(node[1]) + ')'
+
+    def _plus_(self, node):
+        return '%s+' % self._proc(node[1])
+
     def _pred_(self, node):
         return '?(%s)' % self._proc(node[1])
 
@@ -137,6 +146,5 @@ class Printer(object):
     def _sp_(self, node):
         return ' '
 
-    def _paren_(self, node):
-        return '(' + self._proc(node[1]) + ')'
-
+    def _star_(self, node):
+        return '%s*' % self._proc(node[1])

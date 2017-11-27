@@ -1,4 +1,4 @@
-grammar     = (sp rule)*:vs sp end                -> vs
+grammar     = (sp rule)*:vs sp end                -> ['rules', vs]
 
 sp          = ws*
 
@@ -25,10 +25,12 @@ seq         = expr:e (ws sp expr)*:es             -> ['seq', [e] + es]
 expr        = post_expr:e ':' ident:l             -> ['label', e, l]
             | post_expr
 
-post_expr   = prim_expr:e post_op:op              -> ['post', e, op]
+post_expr   = prim_expr:e post_op:op              -> [op, e]
             | prim_expr
 
-post_op     = '?' | '*' | '+'
+post_op     = '?'                                 -> 'opt'
+            | '*'                                 -> 'star'
+            | '+'                                 -> 'plus'
 
 prim_expr   = lit:i sp '..' sp lit:j              -> ['range', i, j]
             | lit:l                               -> l

@@ -37,7 +37,7 @@ def rename(node, prefix):
         return [node[0], prefix + node[1]]
     elif node[0] in ('choice', 'rules', 'seq'):
         return [node[0], [rename(n, prefix) for n in node[1]]]
-    elif node[0] in ('not', 'paren'):
+    elif node[0] in ('not', 'opt', 'paren', 'plus', 'star'):
         return [node[0], rename(node[1], prefix)]
     elif node[0] in ('label', 'post'):
         return [node[0], rename(node[1], prefix), node[2]]
@@ -64,7 +64,7 @@ def simplify(node):
         if len(node[1]) == 1:
             return simplify(node[1][0])
         return [node_type, [simplify(n) for n in node[1]]]
-    elif node_type in ('not',):
+    elif node_type in ('not', 'opt', 'plus', 'star'):
         return [node_type, simplify(node[1])]
     elif node_type in ('paren',):
         return simplify(node[1])
@@ -152,7 +152,7 @@ def _flatten(old_name, old_node, should_flatten):
         else:
             new_node = [old_type, new_subnode, old_node[2]]
         new_rules += new_subrules
-    elif old_type in ('not', 'paren'):
+    elif old_type in ('not', 'opt', 'paren', 'plus', 'star'):
         new_name = '_s_%s_%s' % (old_name[3:], old_type[0])
         new_subnode, new_subrules = _flatten(new_name, old_node[1],
                                              should_flatten)
