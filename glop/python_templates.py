@@ -99,6 +99,7 @@ IDENTIFIERS = {
 
 
 METHODS = {
+    # BUILT-IN RULES
     '_r_anything': {
         'needs': ['_h_fail', '_h_succeed'],
         'body': '''\
@@ -109,6 +110,64 @@ METHODS = {
                 self._h_fail()
             ''',
     },
+    '_r_end': {
+        'needs': ['_h_fail', '_h_succeed'],
+        'body': '''\
+        def _r_end(self):
+            if self.pos == self.end:
+                self._h_succeed(None)
+            else:
+                self._h_fail()
+        ''',
+    },
+
+    # BUILT-IN FUNCTIONS
+    '_f_cat': {
+        'body': '''\
+        def _f_cat(self, strs):
+            return ''.join(strs)
+        '''
+    },
+    '_f_is_unicat': {
+        'imports': ['unicodedata'],
+        'body': '''\
+        def _f_is_unicat(self, var, cat):
+            return unicodedata.category(var) == cat
+        ''',
+    },
+    '_f_itou': {
+        'body': '''\
+        def _f_itou(self, n):
+            return chr(n)
+        ''',
+    },
+    '_f_join': {
+        'body': '''\
+        def _f_join(self, s, vs):
+            return s.join(vs)
+        ''',
+    },
+    '_f_utoi': {
+        'body': '''\
+        def _f_utoi(self, s):
+            return int(s)
+        ''',
+    },
+    '_f_xtoi': {
+        'params': ['s'],
+        'body': '''\
+        def _f_xtoi(self, s):
+            return int(s, base=16)
+        ''',
+    },
+    '_f_xtou': {
+        'body': '''\
+        def _f_xtou(self, s):
+            return chr(int(s, base=16))
+        ''',
+    },
+ 
+    # HELPER METHODS
     '_h_bind': {
         'needs': ['_h_set'],
         'body': '''\
@@ -117,12 +176,6 @@ METHODS = {
             if not self.failed:
                 self._h_set(var, self.val)
         ''',
-    },
-    '_f_cat': {
-        'body': '''\
-        def _f_cat(self, strs):
-            return ''.join(strs)
-        '''
     },
     '_h_ch': {
         'needs': ['_h_succeed', '_h_fail'], 
@@ -146,16 +199,6 @@ METHODS = {
                     return
                 self._h_rewind(p)
             rules[-1]()
-        ''',
-    },
-    '_r_end': {
-        'needs': ['_h_fail', '_h_succeed'],
-        'body': '''\
-        def _r_end(self):
-            if self.pos == self.end:
-                self._h_succeed(None)
-            else:
-                self._h_fail()
         ''',
     },
     '_h_err': {
@@ -191,25 +234,6 @@ METHODS = {
         'body': '''\
         def _h_get(self, var):
             return self._scopes[-1][1][var]
-        ''',
-    },
-    '_f_is_unicat': {
-        'imports': ['unicodedata'],
-        'body': '''\
-        def _f_is_unicat(self, var, cat):
-            return unicodedata.category(var) == cat
-        ''',
-    },
-    '_f_itou': {
-        'body': '''\
-        def _f_itou(self, n):
-            return chr(n)
-        ''',
-    },
-    '_f_join': {
-        'body': '''\
-        def _f_join(self, s, vs):
-            return s.join(vs)
         ''',
     },
     '_h_memo': {
@@ -340,25 +364,6 @@ METHODS = {
             self.failed = False
             if newpos is not None:
                 self.pos = newpos
-        ''',
-    },
-    '_f_utoi': {
-        'body': '''\
-        def _f_utoi(self, s):
-            return int(s)
-        ''',
-    },
-    '_f_xtoi': {
-        'params': ['s'],
-        'body': '''\
-        def _f_xtoi(self, s):
-            return int(s, base=16)
-        ''',
-    },
-    '_f_xtou': {
-        'body': '''\
-        def _f_xtou(self, s):
-            return chr(int(s, base=16))
         ''',
     },
 }
