@@ -39,7 +39,7 @@ def rename(node, prefix):
         return [node[0], [rename(n, prefix) for n in node[1]]]
     elif node[0] in ('not', 'opt', 'paren', 'plus', 'star'):
         return [node[0], rename(node[1], prefix)]
-    elif node[0] in ('label', 'post'):
+    elif node[0] == 'label':
         return [node[0], rename(node[1], prefix), node[2]]
     elif node[0] == 'scope':
         return [node[0], [rename(n, prefix) for n in node[1]],
@@ -66,9 +66,9 @@ def simplify(node):
         return [node_type, [simplify(n) for n in node[1]]]
     elif node_type in ('not', 'opt', 'plus', 'star'):
         return [node_type, simplify(node[1])]
-    elif node_type in ('paren',):
+    elif node_type == 'paren':
         return simplify(node[1])
-    elif node_type in ('label', 'post'):
+    elif node_type == 'label':
         return [node_type, simplify(node[1]), node[2]]
     elif node_type == 'scope':
         if len(node[1]) == 1:
@@ -142,7 +142,7 @@ def _flatten(old_name, old_node, should_flatten):
             new_node = [old_type, new_subnodes, old_node[2]]
         else:
             new_node = [old_type, new_subnodes]
-    elif old_type in ('label', 'post'):
+    elif old_type in ('label',):
         new_name = '_s_%s_%s' % (old_name[3:], old_type[0])
         new_subnode, new_subrules = _flatten(new_name, old_node[1],
                                              should_flatten)
@@ -178,8 +178,6 @@ class Analyzer(object):
         pass
 
     def analyze(self, ast):
-        if ast[0] != 'rules':
-            ast = ['rules', ast]
         err = validate_ast(ast)
         if err:
             return None, err

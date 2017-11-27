@@ -32,14 +32,14 @@ class Parser(object):
             self.val, self.failed, self.pos = r
             return
         pos = self.pos
-        self._h_scope('grammar', [lambda: self._h_bind(lambda: self._h_star(self._s_grammar_s0_l_p, []), 'vs'),
+        self._h_scope('grammar', [lambda: self._h_bind(lambda: self._h_star(self._s_grammar_s0_l_s, []), 'vs'),
                                   self._r_sp,
                                   self._r_end,
                                   lambda: self._h_succeed(['rules', self._h_get('vs')])])
         self._cache[("_r_grammar", pos)] = (
             self.val, self.failed, self.pos)
 
-    def _s_grammar_s0_l_p(self):
+    def _s_grammar_s0_l_s(self):
         self._h_seq([self._r_sp,
                      self._r_rule])
 
@@ -91,18 +91,18 @@ class Parser(object):
 
     def _s_comment_c0(self):
         self._h_seq([lambda: self._h_str('//', 2),
-                     lambda: self._h_star(self._s_comment_c0_s1_p, [])])
+                     lambda: self._h_star(self._s_comment_c0_s1_s, [])])
 
-    def _s_comment_c0_s1_p(self):
+    def _s_comment_c0_s1_s(self):
         self._h_seq([lambda: self._h_not(self._r_eol),
                      self._r_anything])
 
     def _s_comment_c1(self):
         self._h_seq([lambda: self._h_str('/*', 2),
-                     lambda: self._h_star(self._s_comment_c1_s1_p, []),
+                     lambda: self._h_star(self._s_comment_c1_s1_s, []),
                      lambda: self._h_str('*/', 2)])
 
-    def _s_comment_c1_s1_p(self):
+    def _s_comment_c1_s1_s(self):
         self._h_seq([lambda: self._h_not(lambda: self._h_str('*/', 2)),
                      self._r_anything])
 
@@ -165,12 +165,12 @@ class Parser(object):
             return
         pos = self.pos
         self._h_scope('choice', [lambda: self._h_bind(self._r_seq, 's'),
-                                 lambda: self._h_bind(lambda: self._h_star(self._s_choice_s1_l_p, []), 'ss'),
+                                 lambda: self._h_bind(lambda: self._h_star(self._s_choice_s1_l_s, []), 'ss'),
                                  lambda: self._h_succeed(['choice', [self._h_get('s')] + self._h_get('ss')])])
         self._cache[("_r_choice", pos)] = (
             self.val, self.failed, self.pos)
 
-    def _s_choice_s1_l_p(self):
+    def _s_choice_s1_l_s(self):
         self._h_seq([self._r_sp,
                      lambda: self._h_ch('|'),
                      self._r_sp,
@@ -189,10 +189,10 @@ class Parser(object):
 
     def _s_seq_c0(self):
         self._h_scope('seq', [lambda: self._h_bind(self._r_expr, 'e'),
-                              lambda: self._h_bind(lambda: self._h_star(self._s_seq_c0_s1_l_p, []), 'es'),
+                              lambda: self._h_bind(lambda: self._h_star(self._s_seq_c0_s1_l_s, []), 'es'),
                               lambda: self._h_succeed(['seq', [self._h_get('e')] + self._h_get('es')])])
 
-    def _s_seq_c0_s1_l_p(self):
+    def _s_seq_c0_s1_l_s(self):
         self._h_seq([self._r_ws,
                      self._r_sp,
                      self._r_expr])
@@ -534,10 +534,10 @@ class Parser(object):
 
     def _s_ll_exprs_c0(self):
         self._h_scope('ll_exprs', [lambda: self._h_bind(self._r_ll_expr, 'e'),
-                                   lambda: self._h_bind(lambda: self._h_star(self._s_ll_exprs_c0_s1_l_p, []), 'es'),
+                                   lambda: self._h_bind(lambda: self._h_star(self._s_ll_exprs_c0_s1_l_s, []), 'es'),
                                    lambda: self._h_succeed([self._h_get('e')] + self._h_get('es'))])
 
-    def _s_ll_exprs_c0_s1_l_p(self):
+    def _s_ll_exprs_c0_s1_l_s(self):
         self._h_seq([self._r_sp,
                      lambda: self._h_ch(','),
                      self._r_sp,
