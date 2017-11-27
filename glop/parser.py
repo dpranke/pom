@@ -27,67 +27,32 @@ class Parser(object):
         return self.val, None, self.pos
 
     def _r_grammar(self):
-        r = self._cache.get(("_r_grammar", self.pos))
-        if r is not None:
-            self.val, self.failed, self.pos = r
-            return
-        pos = self.pos
-        self._h_scope('grammar', [lambda: self._h_bind(lambda: self._h_star(self._s_grammar_s0_l_s, []), 'vs'),
+        self._h_memo(lambda: self._h_scope('grammar', [lambda: self._h_bind(lambda: self._h_star(self._s_grammar_s0_l_s, []), 'vs'),
                                   self._r_sp,
                                   self._r_end,
-                                  lambda: self._h_succeed(['rules', self._h_get('vs')])])
-        self._cache[("_r_grammar", pos)] = (
-            self.val, self.failed, self.pos)
+                                  lambda: self._h_succeed(['rules', self._h_get('vs')])]), '_r_grammar')
 
     def _s_grammar_s0_l_s(self):
         self._h_seq([self._r_sp,
                      self._r_rule])
 
     def _r_sp(self):
-        r = self._cache.get(("_r_sp", self.pos))
-        if r is not None:
-            self.val, self.failed, self.pos = r
-            return
-        pos = self.pos
-        self._h_star(self._r_ws, [])
-        self._cache[("_r_sp", pos)] = (
-            self.val, self.failed, self.pos)
+        self._h_memo(lambda: self._h_star(self._r_ws, []), '_r_sp')
 
     def _r_ws(self):
-        r = self._cache.get(("_r_ws", self.pos))
-        if r is not None:
-            self.val, self.failed, self.pos = r
-            return
-        pos = self.pos
-        self._h_choose([lambda: self._h_ch(' '),
+        self._h_memo(lambda: self._h_choose([lambda: self._h_ch(' '),
                         lambda: self._h_ch('\t'),
                         self._r_eol,
-                        self._r_comment])
-        self._cache[("_r_ws", pos)] = (
-            self.val, self.failed, self.pos)
+                        self._r_comment]), '_r_ws')
 
     def _r_eol(self):
-        r = self._cache.get(("_r_eol", self.pos))
-        if r is not None:
-            self.val, self.failed, self.pos = r
-            return
-        pos = self.pos
-        self._h_choose([lambda: self._h_str('\r\n', 2),
+        self._h_memo(lambda: self._h_choose([lambda: self._h_str('\r\n', 2),
                         lambda: self._h_ch('\r'),
-                        lambda: self._h_ch('\n')])
-        self._cache[("_r_eol", pos)] = (
-            self.val, self.failed, self.pos)
+                        lambda: self._h_ch('\n')]), '_r_eol')
 
     def _r_comment(self):
-        r = self._cache.get(("_r_comment", self.pos))
-        if r is not None:
-            self.val, self.failed, self.pos = r
-            return
-        pos = self.pos
-        self._h_choose([self._s_comment_c0,
-                        self._s_comment_c1])
-        self._cache[("_r_comment", pos)] = (
-            self.val, self.failed, self.pos)
+        self._h_memo(lambda: self._h_choose([self._s_comment_c0,
+                        self._s_comment_c1]), '_r_comment')
 
     def _s_comment_c0(self):
         self._h_seq([lambda: self._h_str('//', 2),
@@ -107,68 +72,33 @@ class Parser(object):
                      self._r_anything])
 
     def _r_rule(self):
-        r = self._cache.get(("_r_rule", self.pos))
-        if r is not None:
-            self.val, self.failed, self.pos = r
-            return
-        pos = self.pos
-        self._h_scope('rule', [lambda: self._h_bind(self._r_ident, 'i'),
+        self._h_memo(lambda: self._h_scope('rule', [lambda: self._h_bind(self._r_ident, 'i'),
                                self._r_sp,
                                lambda: self._h_ch('='),
                                self._r_sp,
                                lambda: self._h_bind(self._r_choice, 'cs'),
                                self._r_sp,
                                lambda: self._h_opt(lambda: self._h_ch(',')),
-                               lambda: self._h_succeed(['rule', self._h_get('i'), self._h_get('cs')])])
-        self._cache[("_r_rule", pos)] = (
-            self.val, self.failed, self.pos)
+                               lambda: self._h_succeed(['rule', self._h_get('i'), self._h_get('cs')])]), '_r_rule')
 
     def _r_ident(self):
-        r = self._cache.get(("_r_ident", self.pos))
-        if r is not None:
-            self.val, self.failed, self.pos = r
-            return
-        pos = self.pos
-        self._h_scope('ident', [lambda: self._h_bind(self._r_id_start, 'hd'),
+        self._h_memo(lambda: self._h_scope('ident', [lambda: self._h_bind(self._r_id_start, 'hd'),
                                 lambda: self._h_bind(lambda: self._h_star(self._r_id_continue, []), 'tl'),
-                                lambda: self._h_succeed(self._f_cat([self._h_get('hd')] + self._h_get('tl')))])
-        self._cache[("_r_ident", pos)] = (
-            self.val, self.failed, self.pos)
+                                lambda: self._h_succeed(self._f_cat([self._h_get('hd')] + self._h_get('tl')))]), '_r_ident')
 
     def _r_id_start(self):
-        r = self._cache.get(("_r_id_start", self.pos))
-        if r is not None:
-            self.val, self.failed, self.pos = r
-            return
-        pos = self.pos
-        self._h_choose([lambda: self._h_range('a', 'z'),
+        self._h_memo(lambda: self._h_choose([lambda: self._h_range('a', 'z'),
                         lambda: self._h_range('A', 'Z'),
-                        lambda: self._h_ch('_')])
-        self._cache[("_r_id_start", pos)] = (
-            self.val, self.failed, self.pos)
+                        lambda: self._h_ch('_')]), '_r_id_start')
 
     def _r_id_continue(self):
-        r = self._cache.get(("_r_id_continue", self.pos))
-        if r is not None:
-            self.val, self.failed, self.pos = r
-            return
-        pos = self.pos
-        self._h_choose([self._r_id_start,
-                        self._r_digit])
-        self._cache[("_r_id_continue", pos)] = (
-            self.val, self.failed, self.pos)
+        self._h_memo(lambda: self._h_choose([self._r_id_start,
+                        self._r_digit]), '_r_id_continue')
 
     def _r_choice(self):
-        r = self._cache.get(("_r_choice", self.pos))
-        if r is not None:
-            self.val, self.failed, self.pos = r
-            return
-        pos = self.pos
-        self._h_scope('choice', [lambda: self._h_bind(self._r_seq, 's'),
+        self._h_memo(lambda: self._h_scope('choice', [lambda: self._h_bind(self._r_seq, 's'),
                                  lambda: self._h_bind(lambda: self._h_star(self._s_choice_s1_l_s, []), 'ss'),
-                                 lambda: self._h_succeed(['choice', [self._h_get('s')] + self._h_get('ss')])])
-        self._cache[("_r_choice", pos)] = (
-            self.val, self.failed, self.pos)
+                                 lambda: self._h_succeed(['choice', [self._h_get('s')] + self._h_get('ss')])]), '_r_choice')
 
     def _s_choice_s1_l_s(self):
         self._h_seq([self._r_sp,
@@ -177,15 +107,8 @@ class Parser(object):
                      self._r_seq])
 
     def _r_seq(self):
-        r = self._cache.get(("_r_seq", self.pos))
-        if r is not None:
-            self.val, self.failed, self.pos = r
-            return
-        pos = self.pos
-        self._h_choose([self._s_seq_c0,
-                        lambda: self._h_succeed(['empty'])])
-        self._cache[("_r_seq", pos)] = (
-            self.val, self.failed, self.pos)
+        self._h_memo(lambda: self._h_choose([self._s_seq_c0,
+                        lambda: self._h_succeed(['empty'])]), '_r_seq')
 
     def _s_seq_c0(self):
         self._h_scope('seq', [lambda: self._h_bind(self._r_expr, 'e'),
@@ -198,15 +121,8 @@ class Parser(object):
                      self._r_expr])
 
     def _r_expr(self):
-        r = self._cache.get(("_r_expr", self.pos))
-        if r is not None:
-            self.val, self.failed, self.pos = r
-            return
-        pos = self.pos
-        self._h_choose([self._s_expr_c0,
-                        self._r_post_expr])
-        self._cache[("_r_expr", pos)] = (
-            self.val, self.failed, self.pos)
+        self._h_memo(lambda: self._h_choose([self._s_expr_c0,
+                        self._r_post_expr]), '_r_expr')
 
     def _s_expr_c0(self):
         self._h_scope('expr', [lambda: self._h_bind(self._r_post_expr, 'e'),
@@ -215,15 +131,8 @@ class Parser(object):
                                lambda: self._h_succeed(['label', self._h_get('e'), self._h_get('l')])])
 
     def _r_post_expr(self):
-        r = self._cache.get(("_r_post_expr", self.pos))
-        if r is not None:
-            self.val, self.failed, self.pos = r
-            return
-        pos = self.pos
-        self._h_choose([self._s_post_expr_c0,
-                        self._r_prim_expr])
-        self._cache[("_r_post_expr", pos)] = (
-            self.val, self.failed, self.pos)
+        self._h_memo(lambda: self._h_choose([self._s_post_expr_c0,
+                        self._r_prim_expr]), '_r_post_expr')
 
     def _s_post_expr_c0(self):
         self._h_scope('post_expr', [lambda: self._h_bind(self._r_prim_expr, 'e'),
@@ -231,16 +140,9 @@ class Parser(object):
                                     lambda: self._h_succeed([self._h_get('op'), self._h_get('e')])])
 
     def _r_post_op(self):
-        r = self._cache.get(("_r_post_op", self.pos))
-        if r is not None:
-            self.val, self.failed, self.pos = r
-            return
-        pos = self.pos
-        self._h_choose([self._s_post_op_c0,
+        self._h_memo(lambda: self._h_choose([self._s_post_op_c0,
                         self._s_post_op_c1,
-                        self._s_post_op_c2])
-        self._cache[("_r_post_op", pos)] = (
-            self.val, self.failed, self.pos)
+                        self._s_post_op_c2]), '_r_post_op')
 
     def _s_post_op_c0(self):
         self._h_seq([lambda: self._h_ch('?'),
@@ -255,20 +157,13 @@ class Parser(object):
                      lambda: self._h_succeed('plus')])
 
     def _r_prim_expr(self):
-        r = self._cache.get(("_r_prim_expr", self.pos))
-        if r is not None:
-            self.val, self.failed, self.pos = r
-            return
-        pos = self.pos
-        self._h_choose([self._s_prim_expr_c0,
+        self._h_memo(lambda: self._h_choose([self._s_prim_expr_c0,
                         self._s_prim_expr_c1,
                         self._s_prim_expr_c2,
                         self._s_prim_expr_c3,
                         self._s_prim_expr_c4,
                         self._s_prim_expr_c5,
-                        self._s_prim_expr_c6])
-        self._cache[("_r_prim_expr", pos)] = (
-            self.val, self.failed, self.pos)
+                        self._s_prim_expr_c6]), '_r_prim_expr')
 
     def _s_prim_expr_c0(self):
         self._h_scope('prim_expr', [lambda: self._h_bind(self._r_lit, 'i'),
@@ -319,15 +214,8 @@ class Parser(object):
                                     lambda: self._h_succeed(['paren', self._h_get('e')])])
 
     def _r_lit(self):
-        r = self._cache.get(("_r_lit", self.pos))
-        if r is not None:
-            self.val, self.failed, self.pos = r
-            return
-        pos = self.pos
-        self._h_choose([self._s_lit_c0,
-                        self._s_lit_c1])
-        self._cache[("_r_lit", pos)] = (
-            self.val, self.failed, self.pos)
+        self._h_memo(lambda: self._h_choose([self._s_lit_c0,
+                        self._s_lit_c1]), '_r_lit')
 
     def _s_lit_c0(self):
         self._h_scope('lit', [self._r_squote,
@@ -342,15 +230,8 @@ class Parser(object):
                               lambda: self._h_succeed(['lit', self._f_cat(self._h_get('cs'))])])
 
     def _r_sqchar(self):
-        r = self._cache.get(("_r_sqchar", self.pos))
-        if r is not None:
-            self.val, self.failed, self.pos = r
-            return
-        pos = self.pos
-        self._h_choose([self._s_sqchar_c0,
-                        self._s_sqchar_c1])
-        self._cache[("_r_sqchar", pos)] = (
-            self.val, self.failed, self.pos)
+        self._h_memo(lambda: self._h_choose([self._s_sqchar_c0,
+                        self._s_sqchar_c1]), '_r_sqchar')
 
     def _s_sqchar_c0(self):
         self._h_scope('sqchar', [self._r_bslash,
@@ -363,15 +244,8 @@ class Parser(object):
                                  lambda: self._h_succeed(self._h_get('c'))])
 
     def _r_dqchar(self):
-        r = self._cache.get(("_r_dqchar", self.pos))
-        if r is not None:
-            self.val, self.failed, self.pos = r
-            return
-        pos = self.pos
-        self._h_choose([self._s_dqchar_c0,
-                        self._s_dqchar_c1])
-        self._cache[("_r_dqchar", pos)] = (
-            self.val, self.failed, self.pos)
+        self._h_memo(lambda: self._h_choose([self._s_dqchar_c0,
+                        self._s_dqchar_c1]), '_r_dqchar')
 
     def _s_dqchar_c0(self):
         self._h_scope('dqchar', [self._r_bslash,
@@ -384,42 +258,16 @@ class Parser(object):
                                  lambda: self._h_succeed(self._h_get('c'))])
 
     def _r_bslash(self):
-        r = self._cache.get(("_r_bslash", self.pos))
-        if r is not None:
-            self.val, self.failed, self.pos = r
-            return
-        pos = self.pos
-        self._h_ch('\\')
-        self._cache[("_r_bslash", pos)] = (
-            self.val, self.failed, self.pos)
+        self._h_memo(lambda: self._h_ch('\\'), '_r_bslash')
 
     def _r_squote(self):
-        r = self._cache.get(("_r_squote", self.pos))
-        if r is not None:
-            self.val, self.failed, self.pos = r
-            return
-        pos = self.pos
-        self._h_ch("'")
-        self._cache[("_r_squote", pos)] = (
-            self.val, self.failed, self.pos)
+        self._h_memo(lambda: self._h_ch("'"), '_r_squote')
 
     def _r_dquote(self):
-        r = self._cache.get(("_r_dquote", self.pos))
-        if r is not None:
-            self.val, self.failed, self.pos = r
-            return
-        pos = self.pos
-        self._h_ch('"')
-        self._cache[("_r_dquote", pos)] = (
-            self.val, self.failed, self.pos)
+        self._h_memo(lambda: self._h_ch('"'), '_r_dquote')
 
     def _r_esc_char(self):
-        r = self._cache.get(("_r_esc_char", self.pos))
-        if r is not None:
-            self.val, self.failed, self.pos = r
-            return
-        pos = self.pos
-        self._h_choose([self._s_esc_char_c0,
+        self._h_memo(lambda: self._h_choose([self._s_esc_char_c0,
                         self._s_esc_char_c1,
                         self._s_esc_char_c2,
                         self._s_esc_char_c3,
@@ -429,9 +277,7 @@ class Parser(object):
                         self._s_esc_char_c7,
                         self._s_esc_char_c8,
                         self._s_esc_char_c9,
-                        self._s_esc_char_c10])
-        self._cache[("_r_esc_char", pos)] = (
-            self.val, self.failed, self.pos)
+                        self._s_esc_char_c10]), '_r_esc_char')
 
     def _s_esc_char_c0(self):
         self._h_seq([lambda: self._h_ch('b'),
@@ -478,28 +324,14 @@ class Parser(object):
                                    lambda: self._h_succeed(self._h_get('c'))])
 
     def _r_hex_esc(self):
-        r = self._cache.get(("_r_hex_esc", self.pos))
-        if r is not None:
-            self.val, self.failed, self.pos = r
-            return
-        pos = self.pos
-        self._h_scope('hex_esc', [lambda: self._h_ch('x'),
+        self._h_memo(lambda: self._h_scope('hex_esc', [lambda: self._h_ch('x'),
                                   lambda: self._h_bind(self._r_hex, 'h1'),
                                   lambda: self._h_bind(self._r_hex, 'h2'),
-                                  lambda: self._h_succeed(self._f_xtou(self._h_get('h1') + self._h_get('h2')))])
-        self._cache[("_r_hex_esc", pos)] = (
-            self.val, self.failed, self.pos)
+                                  lambda: self._h_succeed(self._f_xtou(self._h_get('h1') + self._h_get('h2')))]), '_r_hex_esc')
 
     def _r_unicode_esc(self):
-        r = self._cache.get(("_r_unicode_esc", self.pos))
-        if r is not None:
-            self.val, self.failed, self.pos = r
-            return
-        pos = self.pos
-        self._h_choose([self._s_unicode_esc_c0,
-                        self._s_unicode_esc_c1])
-        self._cache[("_r_unicode_esc", pos)] = (
-            self.val, self.failed, self.pos)
+        self._h_memo(lambda: self._h_choose([self._s_unicode_esc_c0,
+                        self._s_unicode_esc_c1]), '_r_unicode_esc')
 
     def _s_unicode_esc_c0(self):
         self._h_scope('unicode_esc', [lambda: self._h_ch('u'),
@@ -522,15 +354,8 @@ class Parser(object):
                                       lambda: self._h_succeed(self._f_xtou(self._h_get('h1') + self._h_get('h2') + self._h_get('h3') + self._h_get('h4') + self._h_get('h5') + self._h_get('h6') + self._h_get('h7') + self._h_get('h8')))])
 
     def _r_ll_exprs(self):
-        r = self._cache.get(("_r_ll_exprs", self.pos))
-        if r is not None:
-            self.val, self.failed, self.pos = r
-            return
-        pos = self.pos
-        self._h_choose([self._s_ll_exprs_c0,
-                        lambda: self._h_succeed([])])
-        self._cache[("_r_ll_exprs", pos)] = (
-            self.val, self.failed, self.pos)
+        self._h_memo(lambda: self._h_choose([self._s_ll_exprs_c0,
+                        lambda: self._h_succeed([])]), '_r_ll_exprs')
 
     def _s_ll_exprs_c0(self):
         self._h_scope('ll_exprs', [lambda: self._h_bind(self._r_ll_expr, 'e'),
@@ -544,15 +369,8 @@ class Parser(object):
                      self._r_ll_expr])
 
     def _r_ll_expr(self):
-        r = self._cache.get(("_r_ll_expr", self.pos))
-        if r is not None:
-            self.val, self.failed, self.pos = r
-            return
-        pos = self.pos
-        self._h_choose([self._s_ll_expr_c0,
-                        self._r_ll_qual])
-        self._cache[("_r_ll_expr", pos)] = (
-            self.val, self.failed, self.pos)
+        self._h_memo(lambda: self._h_choose([self._s_ll_expr_c0,
+                        self._r_ll_qual]), '_r_ll_expr')
 
     def _s_ll_expr_c0(self):
         self._h_scope('ll_expr', [lambda: self._h_bind(self._r_ll_qual, 'e1'),
@@ -563,15 +381,8 @@ class Parser(object):
                                   lambda: self._h_succeed(['ll_plus', self._h_get('e1'), self._h_get('e2')])])
 
     def _r_ll_qual(self):
-        r = self._cache.get(("_r_ll_qual", self.pos))
-        if r is not None:
-            self.val, self.failed, self.pos = r
-            return
-        pos = self.pos
-        self._h_choose([self._s_ll_qual_c0,
-                        self._r_ll_prim])
-        self._cache[("_r_ll_qual", pos)] = (
-            self.val, self.failed, self.pos)
+        self._h_memo(lambda: self._h_choose([self._s_ll_qual_c0,
+                        self._r_ll_prim]), '_r_ll_qual')
 
     def _s_ll_qual_c0(self):
         self._h_scope('ll_qual', [lambda: self._h_bind(self._r_ll_prim, 'e'),
@@ -579,16 +390,9 @@ class Parser(object):
                                   lambda: self._h_succeed(['ll_qual', self._h_get('e'), self._h_get('ps')])])
 
     def _r_ll_post_op(self):
-        r = self._cache.get(("_r_ll_post_op", self.pos))
-        if r is not None:
-            self.val, self.failed, self.pos = r
-            return
-        pos = self.pos
-        self._h_choose([self._s_ll_post_op_c0,
+        self._h_memo(lambda: self._h_choose([self._s_ll_post_op_c0,
                         self._s_ll_post_op_c1,
-                        self._s_ll_post_op_c2])
-        self._cache[("_r_ll_post_op", pos)] = (
-            self.val, self.failed, self.pos)
+                        self._s_ll_post_op_c2]), '_r_ll_post_op')
 
     def _s_ll_post_op_c0(self):
         self._h_scope('ll_post_op', [lambda: self._h_ch('['),
@@ -612,19 +416,12 @@ class Parser(object):
                                      lambda: self._h_succeed(['ll_getattr', self._h_get('i')])])
 
     def _r_ll_prim(self):
-        r = self._cache.get(("_r_ll_prim", self.pos))
-        if r is not None:
-            self.val, self.failed, self.pos = r
-            return
-        pos = self.pos
-        self._h_choose([self._s_ll_prim_c0,
+        self._h_memo(lambda: self._h_choose([self._s_ll_prim_c0,
                         self._s_ll_prim_c1,
                         self._s_ll_prim_c2,
                         self._s_ll_prim_c3,
                         self._s_ll_prim_c4,
-                        self._s_ll_prim_c5])
-        self._cache[("_r_ll_prim", pos)] = (
-            self.val, self.failed, self.pos)
+                        self._s_ll_prim_c5]), '_r_ll_prim')
 
     def _s_ll_prim_c0(self):
         self._h_scope('ll_prim', [lambda: self._h_bind(self._r_ident, 'i'),
@@ -660,48 +457,20 @@ class Parser(object):
                                   lambda: self._h_succeed(['ll_arr', self._h_get('es')])])
 
     def _r_digits(self):
-        r = self._cache.get(("_r_digits", self.pos))
-        if r is not None:
-            self.val, self.failed, self.pos = r
-            return
-        pos = self.pos
-        self._h_scope('digits', [lambda: self._h_bind(lambda: self._h_plus(self._r_digit), 'ds'),
-                                 lambda: self._h_succeed(self._f_cat(self._h_get('ds')))])
-        self._cache[("_r_digits", pos)] = (
-            self.val, self.failed, self.pos)
+        self._h_memo(lambda: self._h_scope('digits', [lambda: self._h_bind(lambda: self._h_plus(self._r_digit), 'ds'),
+                                 lambda: self._h_succeed(self._f_cat(self._h_get('ds')))]), '_r_digits')
 
     def _r_hexdigits(self):
-        r = self._cache.get(("_r_hexdigits", self.pos))
-        if r is not None:
-            self.val, self.failed, self.pos = r
-            return
-        pos = self.pos
-        self._h_scope('hexdigits', [lambda: self._h_bind(lambda: self._h_plus(self._r_hex), 'hs'),
-                                    lambda: self._h_succeed(self._f_cat(self._h_get('hs')))])
-        self._cache[("_r_hexdigits", pos)] = (
-            self.val, self.failed, self.pos)
+        self._h_memo(lambda: self._h_scope('hexdigits', [lambda: self._h_bind(lambda: self._h_plus(self._r_hex), 'hs'),
+                                    lambda: self._h_succeed(self._f_cat(self._h_get('hs')))]), '_r_hexdigits')
 
     def _r_hex(self):
-        r = self._cache.get(("_r_hex", self.pos))
-        if r is not None:
-            self.val, self.failed, self.pos = r
-            return
-        pos = self.pos
-        self._h_choose([self._r_digit,
+        self._h_memo(lambda: self._h_choose([self._r_digit,
                         lambda: self._h_range('a', 'f'),
-                        lambda: self._h_range('A', 'F')])
-        self._cache[("_r_hex", pos)] = (
-            self.val, self.failed, self.pos)
+                        lambda: self._h_range('A', 'F')]), '_r_hex')
 
     def _r_digit(self):
-        r = self._cache.get(("_r_digit", self.pos))
-        if r is not None:
-            self.val, self.failed, self.pos = r
-            return
-        pos = self.pos
-        self._h_range('0', '9')
-        self._cache[("_r_digit", pos)] = (
-            self.val, self.failed, self.pos)
+        self._h_memo(lambda: self._h_range('0', '9'), '_r_digit')
 
     def _r_anything(self):
         if self.pos < self.end:
@@ -767,6 +536,15 @@ class Parser(object):
 
     def _h_get(self, var):
         return self._scopes[-1][1][var]
+
+    def _h_memo(self, rule, rule_name):
+        r = self._cache.get((rule_name, self.pos))
+        if r is not None:
+            self.val, self.failed, self.pos = r
+            return
+        pos = self.pos
+        rule()
+        self._cache[(rule_name, pos)] = (self.val, self.failed, self.pos)
 
     def _h_not(self, rule):
         p = self.pos

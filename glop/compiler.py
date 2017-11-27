@@ -33,7 +33,10 @@ class Compiler(object):
         self._needed = set(['_h_err'])
 
     def compile(self):
+        original_names = set('_r_' + name for name in self.grammar.rule_names)
         self.grammar = self.grammar.flatten(self._should_flatten)
+        if self.memoize:
+            self.grammar = self.grammar.memoize(original_names)
 
         for _, rule, node in self.grammar.rules:
             self._methods[rule] = self._gen(node, as_callable=False)
@@ -49,7 +52,9 @@ class Compiler(object):
 
         methods = ''
         for _, rule, _ in self.grammar.rules:
-            methods += self._method_for(rule)
+            methods += self.templates.METHOD.format(
+               rule=rule,
+               lines=('        ' + '\n        '.join(self._methods[rule])))
 
         methods += self._native_methods_of_type('_r_')
         methods += self._native_methods_of_type('_f_')
@@ -73,15 +78,6 @@ class Compiler(object):
         if self.memoize:
             args['memoizing_fields'] = '        self._cache = {}\n'
         return self.templates.TEXT.format(**args), None
-
-    def _method_for(self, rule):
-        if self.memoize and rule.startswith('_r_'):
-            tmpl = self.templates.MEMOIZED_METHOD
-        else:
-            tmpl = self.templates.METHOD
-        return '\n' + tmpl.format(
-            rule=rule,
-            lines=('        ' + '\n        '.join(self._methods[rule])))
 
     def _native_methods_of_type(self, ty):
         methods = ''
@@ -163,7 +159,8 @@ class Compiler(object):
 
     def _label_(self, node, as_callable):
         var = lit.encode(node[2])
-        expr = self._inv('_h_bind', '%s, %s' % (self._gen(node[1], as_callable=True), var))
+        expr = self._inv('_h_bind', '%s, %s' % (
+                         self._gen(node[1], as_callable=True), var))
         if as_callable:
             return 'lambda: ' + expr
         return [expr]
@@ -217,6 +214,14 @@ class Compiler(object):
             return 'self._f_%s' % name
         else:
             return self._inv('_h_get', "'%s'" % name)
+
+    def _memo_(self, node, as_callable):
+        var = lit.encode(node[2])
+        expr = self._inv('_h_memo', '%s, %s' % (
+                         self._gen(node[1], as_callable=True), var))
+        if as_callable:
+            return 'lambda: ' + expr
+        return [expr]
 
     def _not_(self, node, as_callable):
         expr = self._inv('_h_not', self._gen(node[1], as_callable=True))

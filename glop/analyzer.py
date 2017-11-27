@@ -28,6 +28,20 @@ class Grammar(object):
     def flatten(self, should_flatten=None):
         return Grammar(flatten(self.ast, should_flatten))
 
+    def memoize(self, rules_to_memoize):
+        return Grammar(memoize(self.ast, rules_to_memoize))
+
+
+def memoize(ast, rules_to_memoize):
+    new_rules = []
+    for rule in ast[1]:
+        _, name, node = rule
+        if name in rules_to_memoize:
+            new_rules.append(['rule', name, ['memo', node, name]])
+        else:
+            new_rules.append(rule)
+    return ['rules', new_rules]
+
 
 def rename(node, prefix):
     """Returns a new AST with all of the rule names prefixed by |prefix|."""
@@ -37,7 +51,7 @@ def rename(node, prefix):
         return [node[0], prefix + node[1]]
     elif node[0] in ('choice', 'rules', 'seq'):
         return [node[0], [rename(n, prefix) for n in node[1]]]
-    elif node[0] in ('not', 'opt', 'paren', 'plus', 'star'):
+    elif node[0] in ('memo', 'not', 'opt', 'paren', 'plus', 'star'):
         return [node[0], rename(node[1], prefix)]
     elif node[0] == 'label':
         return [node[0], rename(node[1], prefix), node[2]]
@@ -68,7 +82,7 @@ def simplify(node):
         return [node_type, simplify(node[1])]
     elif node_type == 'paren':
         return simplify(node[1])
-    elif node_type == 'label':
+    elif node_type in ('label', 'memo'):
         return [node_type, simplify(node[1]), node[2]]
     elif node_type == 'scope':
         if len(node[1]) == 1:
@@ -111,9 +125,7 @@ def flatten(ast, should_flatten=None):
     ast = rename(ast, '_r_')
 
     new_rules = []
-    for old_rule in ast[1]:
-        old_name = old_rule[1]
-        old_node = old_rule[2]
+    for _, old_name, old_node in ast[1]:
         new_subnode, new_subrules = _flatten(old_name, old_node, should_flatten)
         new_rules += [['rule', old_name, new_subnode]] + new_subrules
     return ['rules', new_rules]
@@ -152,7 +164,7 @@ def _flatten(old_name, old_node, should_flatten):
         else:
             new_node = [old_type, new_subnode, old_node[2]]
         new_rules += new_subrules
-    elif old_type in ('not', 'opt', 'paren', 'plus', 'star'):
+    elif old_type in ('memo', 'not', 'opt', 'paren', 'plus', 'star'):
         new_name = '_s_%s_%s' % (old_name[3:], old_type[0])
         new_subnode, new_subrules = _flatten(new_name, old_node[1],
                                              should_flatten)

@@ -86,20 +86,9 @@ if __name__ == '__main__':
 
 
 METHOD = '''\
-    def {rule}(self):
-{lines}
-'''
 
-MEMOIZED_METHOD = '''\
     def {rule}(self):
-        r = self._cache.get(("{rule}", self.pos))
-        if r is not None:
-            self.val, self.failed, self.pos = r
-            return
-        pos = self.pos
 {lines}
-        self._cache[("{rule}", pos)] = (
-            self.val, self.failed, self.pos)
 '''
 
 IDENTIFIERS = {
@@ -221,6 +210,18 @@ METHODS = {
         'body': '''\
         def _f_join(self, s, vs):
             return s.join(vs)
+        ''',
+    },
+    '_h_memo': {
+        'body': '''\
+        def _h_memo(self, rule, rule_name):
+            r = self._cache.get((rule_name, self.pos))
+            if r is not None:
+                self.val, self.failed, self.pos = r
+                return
+            pos = self.pos
+            rule()
+            self._cache[(rule_name, pos)] = (self.val, self.failed, self.pos)
         ''',
     },
     '_h_not': {
