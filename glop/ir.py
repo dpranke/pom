@@ -164,19 +164,27 @@ def _flatten(old_name, old_node, should_flatten):
     return new_node, new_rules
 
 
-def regexpify(old_node):
+def regexpify(old_node, rules=None, force=False):
+    if rules is None:
+        rules = {}
+        try:
+            for _, name, val in old_node[1]:
+                rules[name] = val
+        except Exception as e:
+            import pdb; pdb.set_trace()
+
     old_typ = old_node[0]
     old_subnode = old_node[1]
     if old_typ == 'choice':
-        if all(_can_regexpify(sn) for sn in old_subnode):
-            return ['re', '(' + '|'.join(_re_esc(sn)
+        if all(_can_regexpify(sn, rules) for sn in old_subnode):
+            return ['re', '(' + '|'.join(regexpify(sn, rules, force=True)[1]
                                          for sn in old_subnode) + ')']
         else:
             return [old_typ, old_subnode]
     elif old_typ == 'rules':
-        return [old_typ, [regexpify(sn) for sn in old_subnode]]
+        return [old_typ, [regexpify(sn, rules) for sn in old_subnode]]
     elif old_typ in ('scope', 'seq'):
-        subnodes = [regexpify(sn) for sn in old_subnode]
+        subnodes = [regexpify(sn, rules, force=True) for sn in old_subnode]
         collapsed_subnodes = []
         re_subnodes = []
         l = None
@@ -184,56 +192,68 @@ def regexpify(old_node):
             r = subnodes.pop(0)
             if not l:
                 l = r
-            elif l[0] not in ('lit', 're') or r[0] not in ('lit', 're'):
+            elif not _can_regexpify(l, rules) or not _can_regexpify(r, rules):
                 collapsed_subnodes.append(l)
                 l = r
                 continue
-            elif l:
-                if l[0] == 'lit':
-                    l = ['re' + _re_esc(r)]
-                l[1] = l[1] + _re_esc(r)
+            else:
+                l = ['re', regexpify(l, rules)[1] + regexpify(r, rules)[1]]
         collapsed_subnodes.append(l)
+        if len(collapsed_subnodes) == 1:
+            return collapsed_subnodes[0]
         if old_typ == 'scope':
             return [old_typ, collapsed_subnodes, old_node[2]]
         else:
             return [old_typ, collapsed_subnodes]
-    elif old_typ in ('scope', 'seq'):
-        new_subnodes = [regexpify(sn) for sn in old_subnode]
-        if old_typ == 'scope':
-            return [old_typ, new_subnodes, old_node[2]]
-        else:
-            return [old_typ, new_subnodes]
     elif old_typ in ('label',):
-        return [old_typ, regexpify(old_subnode), old_node[2]]
+        return [old_typ, regexpify(old_subnode, rules), old_node[2]]
     elif old_typ in ('rule',):
-        return [old_typ, old_node[1], regexpify(old_node[2])]
-    elif old_typ == 'opt' and _can_regexpify(old_subnode):
-        return ['re', '(%s)?' % _re_esc(old_subnode)]
-    elif old_typ == 'plus' and _can_regexpify(old_subnode):
-        return ['re', '(%s)+' % _re_esc(old_subnode)]
-    elif old_typ == 'star' and _can_regexpify(old_subnode):
-        return ['re', '(%s)*' % _re_esc(old_subnode)]
-    elif old_typ == 'not' and _can_regexpify(old_subnode):
-        return ['re', '(?!%s)' % _re_esc(old_subnode)]
+        rules[old_node[1]] = regexpify(old_node[2], rules)
+        return [old_typ, old_node[1], rules[old_node[1]]]
+    elif old_typ == 'opt' and _can_regexpify(old_subnode, rules):
+        return ['re', '(%s)?' % regexpify(old_subnode, rules, force=True)[1]]
+    elif old_typ == 'plus' and _can_regexpify(old_subnode, rules):
+        return ['re', '(%s)+' % regexpify(old_subnode, rules, force=True)[1]]
+    elif old_typ == 'star' and _can_regexpify(old_subnode, rules):
+        return ['re', '(%s)*' % regexpify(old_subnode, rules, force=True)[1]]
+    elif old_typ == 'not' and _can_regexpify(old_subnode, rules):
+        return ['re', '(?!%s)' % regexpify(old_subnode, rules, force=True)[1]]
     elif old_typ in ('memo', 'not', 'opt', 'paren', 'plus', 'star'):
-        return [old_typ, regexpify(old_subnode)]
+        return [old_typ, regexpify(old_subnode, rules)]
+    elif old_typ in ('lit', 'range') and force:
+        return ['re', _re_esc(old_node)]
+    elif old_typ == 'apply'and force:
+        if old_subnode == 'anything':
+            return ['re', '.']
+        elif old_subnode == 'end':
+            return old_node
+        else:
+            return regexpify(rules[old_subnode], rules)
     else:
         return old_node
 
 
-def _can_regexpify(node):
+def _can_regexpify(node, rules, visited=None):
+    visited = visited or set()
     return (node[0] in ('lit', 'range', 're') or
-            node == ['apply', '_r_anything'])
+            node == ['apply', 'anything'] or
+            (node[0] in ('not', 'plus', 'opt', 'star') and
+             _can_regexpify(node[1], rules)) or
+            (node[0] == 'apply' and not node[1] in visited and
+             not node[1] == 'end' and
+            _can_regexpify(rules[node[1]], rules, visited.union({node[1]}))) or
+            (node[0] in ('choice', 'scope', 'seq') and
+             all(_can_regexpify(sn, rules, visited) for sn in node[1])))
+
 
 def _re_esc(node):
     if node[0] == 'lit':
         return ''.join('\\%s' % c if (c in '[]+*?()') else c for c in node[1])
     elif node[0] == 'range':
         return '[%s-%s]' % (node[1][1], node[2][1])
-    elif node == ['apply', '_r_anything']:
-        return '.'
     elif node[0] == 're':
         return node[1]
+    import pdb; pdb.set_trace()
     assert False, 'unexpected node: %s' % repr(node)
 
 
