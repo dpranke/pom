@@ -168,16 +168,35 @@ def regexpify(old_node):
     old_typ = old_node[0]
     old_subnode = old_node[1]
     if old_typ == 'choice':
-        if all(sn[0] == 'lit' for sn in old_subnode):
-            return ['re', '(' + '|'.join(sn[1] for sn in old_subnode) + ')']
+        if all(_can_regexpify(sn) for sn in old_subnode):
+            return ['re', '(' + '|'.join(_re_esc(sn)
+                                         for sn in old_subnode) + ')']
         else:
             return [old_typ, old_subnode]
-    elif old_typ in ('rules', 'scope', 'seq'):
-        new_subnodes = [regexpify(sn) for sn in old_subnode]
+    elif old_typ == 'rules':
+        return [old_typ, [regexpify(sn) for sn in old_subnode]]
+    elif old_typ in ('scope', 'seq'):
+        subnodes = [regexpify(sn) for sn in old_subnode]
+        collapsed_subnodes = []
+        re_subnodes = []
+        l = None
+        while subnodes:
+            r = subnodes.pop(0)
+            if not l:
+                l = r
+            elif l[0] not in ('lit', 're') or r[0] not in ('lit', 're'):
+                collapsed_subnodes.append(l)
+                l = r
+                continue
+            elif l:
+                if l[0] == 'lit':
+                    l = ['re' + _re_esc(r)]
+                l[1] = l[1] + _re_esc(r)
+        collapsed_subnodes.append(l)
         if old_typ == 'scope':
-            return [old_typ, new_subnodes, old_node[2]]
+            return [old_typ, collapsed_subnodes, old_node[2]]
         else:
-            return [old_typ, new_subnodes]
+            return [old_typ, collapsed_subnodes]
     elif old_typ in ('scope', 'seq'):
         new_subnodes = [regexpify(sn) for sn in old_subnode]
         if old_typ == 'scope':
@@ -188,10 +207,34 @@ def regexpify(old_node):
         return [old_typ, regexpify(old_subnode), old_node[2]]
     elif old_typ in ('rule',):
         return [old_typ, old_node[1], regexpify(old_node[2])]
+    elif old_typ == 'opt' and _can_regexpify(old_subnode):
+        return ['re', '(%s)?' % _re_esc(old_subnode)]
+    elif old_typ == 'plus' and _can_regexpify(old_subnode):
+        return ['re', '(%s)+' % _re_esc(old_subnode)]
+    elif old_typ == 'star' and _can_regexpify(old_subnode):
+        return ['re', '(%s)*' % _re_esc(old_subnode)]
+    elif old_typ == 'not' and _can_regexpify(old_subnode):
+        return ['re', '(?!%s)' % _re_esc(old_subnode)]
     elif old_typ in ('memo', 'not', 'opt', 'paren', 'plus', 'star'):
         return [old_typ, regexpify(old_subnode)]
     else:
         return old_node
+
+
+def _can_regexpify(node):
+    return (node[0] in ('lit', 'range', 're') or
+            node == ['apply', '_r_anything'])
+
+def _re_esc(node):
+    if node[0] == 'lit':
+        return ''.join('\\%s' % c if (c in '[]+*?()') else c for c in node[1])
+    elif node[0] == 'range':
+        return '[%s-%s]' % (node[1][1], node[2][1])
+    elif node == ['apply', '_r_anything']:
+        return '.'
+    elif node[0] == 're':
+        return node[1]
+    assert False, 'unexpected node: %s' % repr(node)
 
 
 def validate_ast(ast):

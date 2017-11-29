@@ -77,7 +77,7 @@ class Parser(object):
                                self._r_sp,
                                lambda: self._h_bind(self._r_choice, 'cs'),
                                self._r_sp,
-                               lambda: self._h_opt(lambda: self._h_ch(',')),
+                               lambda: self._h_re('(,)?'),
                                lambda: self._h_succeed(['rule', self._h_get('i'), self._h_get('cs')])]), '_r_rule')
 
     def _r_ident(self):
@@ -86,9 +86,7 @@ class Parser(object):
                                 lambda: self._h_succeed(self._f_cat([self._h_get('hd')] + self._h_get('tl')))]), '_r_ident')
 
     def _r_id_start(self):
-        self._h_memo(lambda: self._h_choose([lambda: self._h_range('a', 'z'),
-                        lambda: self._h_range('A', 'Z'),
-                        lambda: self._h_ch('_')]), '_r_id_start')
+        self._h_memo(lambda: self._h_re('([a-z]|[A-Z]|_)'), '_r_id_start')
 
     def _r_id_continue(self):
         self._h_memo(lambda: self._h_choose([self._r_id_start,
@@ -553,14 +551,6 @@ class Parser(object):
         else:
             self._h_rewind(p)
             self._h_fail()
-
-    def _h_opt(self, rule):
-        p = self.pos
-        rule()
-        if self.failed:
-            self._h_succeed([], p)
-        else:
-            self._h_succeed([self.val])
 
     def _h_plus(self, rule):
         vs = []
