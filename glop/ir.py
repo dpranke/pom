@@ -21,16 +21,6 @@ class Grammar(object):
         self.rule_names = set(r[1] for r in self.rules)
         self.starting_rule = self.rules[0][1]
 
-    def rename(self, prefix):
-        """Renames all of the rules in the AST to have the given prefix."""
-        return Grammar(rename(self.ast, prefix))
-
-    def flatten(self, should_flatten):
-        return Grammar(flatten(self.ast, should_flatten))
-
-    def memoize(self, rules_to_memoize):
-        return Grammar(memoize(self.ast, rules_to_memoize))
-
 
 def memoize(ast, rules_to_memoize):
     new_rules = []
@@ -51,7 +41,7 @@ def rename(node, prefix):
         return [node[0], prefix + node[1]]
     elif node[0] in ('choice', 'rules', 'seq'):
         return [node[0], [rename(n, prefix) for n in node[1]]]
-    elif node[0] in ('memo', 'not', 'opt', 'paren', 'plus', 'star'):
+    elif node[0] in ('memo', 'not', 'opt', 'paren', 'plus', 're', 'star'):
         return [node[0], rename(node[1], prefix)]
     elif node[0] == 'label':
         return [node[0], rename(node[1], prefix), node[2]]
@@ -78,7 +68,7 @@ def simplify(node):
         if len(node[1]) == 1:
             return simplify(node[1][0])
         return [node_type, [simplify(n) for n in node[1]]]
-    elif node_type in ('not', 'opt', 'plus', 'star'):
+    elif node_type in ('not', 'opt', 'plus', 're', 'star'):
         return [node_type, simplify(node[1])]
     elif node_type == 'paren':
         return simplify(node[1])
@@ -159,7 +149,7 @@ def _flatten(old_name, old_node, should_flatten):
         else:
             new_node = [old_type, new_subnode, old_node[2]]
         new_rules += new_subrules
-    elif old_type in ('memo', 'not', 'opt', 'paren', 'plus', 'star'):
+    elif old_type in ('memo', 'not', 'opt', 'paren', 'plus', 're', 'star'):
         new_name = '_s_%s_%s' % (old_name[3:], old_type[0])
         new_subnode, new_subrules = _flatten(new_name, old_node[1],
                                              should_flatten)
@@ -172,6 +162,36 @@ def _flatten(old_name, old_node, should_flatten):
     else:
         new_node = old_node
     return new_node, new_rules
+
+
+def regexpify(old_node):
+    old_typ = old_node[0]
+    old_subnode = old_node[1]
+    if old_typ == 'choice':
+        if all(sn[0] == 'lit' for sn in old_subnode):
+            return ['re', '(' + '|'.join(sn[1] for sn in old_subnode) + ')']
+        else:
+            return [old_typ, old_subnode]
+    elif old_typ in ('rules', 'scope', 'seq'):
+        new_subnodes = [regexpify(sn) for sn in old_subnode]
+        if old_typ == 'scope':
+            return [old_typ, new_subnodes, old_node[2]]
+        else:
+            return [old_typ, new_subnodes]
+    elif old_typ in ('scope', 'seq'):
+        new_subnodes = [regexpify(sn) for sn in old_subnode]
+        if old_typ == 'scope':
+            return [old_typ, new_subnodes, old_node[2]]
+        else:
+            return [old_typ, new_subnodes]
+    elif old_typ in ('label',):
+        return [old_typ, regexpify(old_subnode), old_node[2]]
+    elif old_typ in ('rule',):
+        return [old_typ, old_node[1], regexpify(old_node[2])]
+    elif old_typ in ('memo', 'not', 'opt', 'paren', 'plus', 'star'):
+        return [old_typ, regexpify(old_subnode)]
+    else:
+        return old_node
 
 
 def validate_ast(ast):

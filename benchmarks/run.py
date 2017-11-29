@@ -68,10 +68,7 @@ def main():
         if err:
             print(err, file=sys.stderr)
             return 1
-        grammar, err = Analyzer().analyze(ast)
-        if err:
-            print(err, file=sys.stderr)
-            return 1
+        grammar = Grammar(ast)
         comp = Compiler(grammar, 'Glop', main_wanted=False, memoize=False)
         _, err = comp.compile()
         if err:

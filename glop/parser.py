@@ -1,3 +1,4 @@
+import re
 import sys
 
 if sys.version_info[0] < 3:
@@ -46,9 +47,7 @@ class Parser(object):
                         self._r_comment]), '_r_ws')
 
     def _r_eol(self):
-        self._h_memo(lambda: self._h_choose([lambda: self._h_str('\r\n', 2),
-                        lambda: self._h_ch('\r'),
-                        lambda: self._h_ch('\n')]), '_r_eol')
+        self._h_memo(lambda: self._h_re('(\r\n|\r|\n)'), '_r_eol')
 
     def _r_comment(self):
         self._h_memo(lambda: self._h_choose([self._s_comment_c0,
@@ -577,6 +576,13 @@ class Parser(object):
             self._h_succeed(self.msg[p], self.pos + 1)
         else:
             self._h_fail()
+
+    def _h_re(self, pattern):
+        m = re.match(pattern, self.msg[self.pos:])
+        if m:
+          self._h_succeed(m.group(0), self.pos + len(m.group(0)))
+        else:
+          self._h_fail()
 
     def _h_rewind(self, pos):
         self._h_succeed(None, pos)

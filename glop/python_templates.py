@@ -35,7 +35,7 @@ class {classname}(object):
         self.pos = 0
         self.failed = False
         self.errpos = 0
-{bindings_fields}{memoizing_fields}
+{optional_fields}
     def parse(self):
         self.{starting_rule}()
         if self.failed:
@@ -129,7 +129,7 @@ METHODS = {
         '''
     },
     '_f_is_unicat': {
-        'imports': ['unicodedata'],
+        'imports': ['import unicodedata'],
         'body': '''\
         def _f_is_unicat(self, var, cat):
             return unicodedata.category(var) == cat
@@ -294,6 +294,18 @@ METHODS = {
                 self._h_succeed(self.msg[p], self.pos + 1)
             else:
                 self._h_fail()
+        ''',
+    },
+    '_h_re': {
+        'imports': ['import re'],
+        'needs': ['_h_succeed', '_h_fail'],
+        'body': '''\
+        def _h_re(self, pattern):
+            m = re.match(pattern, self.msg[self.pos:])
+            if m:
+              self._h_succeed(m.group(0), self.pos + len(m.group(0)))
+            else:
+              self._h_fail()
         ''',
     },
     '_h_rewind': {

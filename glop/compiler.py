@@ -14,6 +14,7 @@
 
 import textwrap
 
+from . import ir
 from . import lit
 from . import python_templates
 
@@ -31,12 +32,17 @@ class Compiler(object):
         self._identifiers = self.templates.IDENTIFIERS
         self._natives = self.templates.METHODS
         self._needed = set(['_h_err'])
+        self._regexps = {}
 
     def compile(self):
-        original_names = set('_r_' + name for name in self.grammar.rule_names)
-        self.grammar = self.grammar.flatten(self._should_flatten)
+        ast = self.grammar.ast
+        ast = ir.regexpify(ast)
+        ast = ir.flatten(ast, self._should_flatten)
         if self.memoize:
-            self.grammar = self.grammar.memoize(original_names)
+            original_names = set('_r_' + name
+                                 for name in self.grammar.rule_names)
+            ast = ir.memoize(ast, original_names)
+        self.grammar = ir.Grammar(ast)
 
         for _, rule, node in self.grammar.rules:
             self._methods[rule] = self._gen(node, as_callable=False)
@@ -73,10 +79,11 @@ class Compiler(object):
         if self.main_wanted:
             args['main_header'] = self.templates.MAIN_HEADER.format(**args)
             args['main_footer'] = self.templates.MAIN_FOOTER.format(**args)
+        args['optional_fields'] = ''
         if '_h_set' in self._needed and '_h_scope' in self._needed:
-            args['bindings_fields'] = '        self._scopes = []\n'
+            args['optional_fields'] += '        self._scopes = []\n'
         if self.memoize:
-            args['memoizing_fields'] = '        self._cache = {}\n'
+            args['optional_fields'] += '        self._cache = {}\n'
         return self.templates.TEXT.format(**args), None
 
     def _native_methods_of_type(self, ty):
@@ -102,7 +109,7 @@ class Compiler(object):
         ty = node[0]
         if ty in ('choice', 'scope', 'seq'):
             return max(self._depth(n) for n in node[1]) + self._MAX_DEPTH
-        elif ty in ('label', 'not', 'opt', 'paren', 'plus', 'star'):
+        elif ty in ('label', 'not', 'opt', 'paren', 'plus', 're', 'star'):
             return self._depth(node[1]) + 1
         else:
             return 1
@@ -259,6 +266,12 @@ class Compiler(object):
     def _range_(self, node, as_callable):
         expr = self._inv('_h_range', '%s, %s' % (lit.encode(node[1][1]),
                                                  lit.encode(node[2][1])))
+        if as_callable:
+            return 'lambda: ' + expr
+        return [expr]
+
+    def _re_(self, node, as_callable):
+        expr = self._inv('_h_re', '%s' % lit.encode(node[1]))
         if as_callable:
             return 'lambda: ' + expr
         return [expr]
