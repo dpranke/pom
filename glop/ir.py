@@ -25,7 +25,7 @@ class Grammar(object):
         """Renames all of the rules in the AST to have the given prefix."""
         return Grammar(rename(self.ast, prefix))
 
-    def flatten(self, should_flatten=None):
+    def flatten(self, should_flatten):
         return Grammar(flatten(self.ast, should_flatten))
 
     def memoize(self, rules_to_memoize):
@@ -119,9 +119,8 @@ def _has_labels(node):
     return False
 
 
-def flatten(ast, should_flatten=None):
+def flatten(ast, should_flatten):
     """Return a new ast with nested sequences or choices moved to new rules."""
-    should_flatten = should_flatten or _default_should_flatten
     ast = rename(ast, '_r_')
 
     new_rules = []
@@ -129,10 +128,6 @@ def flatten(ast, should_flatten=None):
         new_subnode, new_subrules = _flatten(old_name, old_node, should_flatten)
         new_rules += [['rule', old_name, new_subnode]] + new_subrules
     return ['rules', new_rules]
-
-
-def _default_should_flatten(node):
-    return node[0] != 'apply'
 
 
 def _flatten(old_name, old_node, should_flatten):
@@ -183,15 +178,3 @@ def validate_ast(ast):
     if ast[0] != 'rules' or any(n[0] != 'rule' for n in ast[1]):
         return 'malformed ast'
     return None
-
-
-class Analyzer(object):
-    def __init__(self):
-        pass
-
-    def analyze(self, ast):
-        err = validate_ast(ast)
-        if err:
-            return None, err
-
-        return Grammar(ast), None

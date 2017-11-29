@@ -24,7 +24,7 @@ if not d in sys.path:
 # We use absolute paths rather than relative paths because this file can be
 # invoked directly as a script (and isn't considered part of a module in
 # that case).
-from glop.analyzer import Analyzer
+from glop.ir import Grammar
 from glop.compiler import Compiler
 from glop.printer import Printer
 from glop.host import Host
@@ -168,11 +168,7 @@ def _read_grammar(host, args):
         host.print_(err, stream=host.stderr)
         return None, 1
 
-    grammar, err = Analyzer().analyze(ast)
-    if err:
-        host.print_(err, stream=host.stderr)
-        return None, 1
-    return grammar, 0
+    return Grammar(ast), 0
 
 
 def _pretty_print_grammar(host, args, grammar):
