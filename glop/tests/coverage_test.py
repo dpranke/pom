@@ -12,9 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
 import unittest
 
 from io import StringIO
+
+if sys.version_info[0] < 3:
+    # pylint: disable=redefined-builtin
+    str = unicode
 
 from glop import tool
 from glop.tests import main_test
@@ -28,7 +33,7 @@ class CoverageTestMixin(object):
     def _call(self, host, args, stdin=None,
               returncode=None, out=None, err=None):
         if stdin:
-          host.stdin = StringIO(unicode(stdin))
+          host.stdin = StringIO(str(stdin))
         else:
           host.stdin = StringIO()
         host.stdout = StringIO()

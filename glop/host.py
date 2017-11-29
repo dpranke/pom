@@ -18,6 +18,10 @@ import subprocess
 import sys
 import tempfile
 
+if sys.version_info[0] < 3:
+    # pylint: disable=redefined-builtin
+    str = unicode
+
 
 class Host(object):
     python_interpreter = sys.executable
@@ -70,7 +74,7 @@ class Host(object):
         return os.path.join(*comps)
 
     def make_executable(self, path):
-        os.chmod(path, 0755)
+        os.chmod(path, 0o755)
 
     def mktempfile(self, delete=True):
         return tempfile.NamedTemporaryFile(delete=delete)
@@ -83,11 +87,11 @@ class Host(object):
 
     def print_(self, msg, end='\n', stream=None):
         stream = stream or self.stdout
-        stream.write(unicode(msg) + end)
+        stream.write(str(msg) + end)
         stream.flush()
 
     def read_text_file(self, path):
-        with open(path) as f:
+        with open(path, 'rb') as f:
             return f.read().decode('utf8')
 
     def relpath(self, path, start):
@@ -100,5 +104,5 @@ class Host(object):
         return os.path.splitext(path)
 
     def write_text_file(self, path, contents):
-        with open(path, 'w') as f:
+        with open(path, 'wb') as f:
             f.write(contents.encode('utf8'))

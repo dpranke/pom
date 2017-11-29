@@ -12,7 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
 import unittest
+
+if sys.version_info[0] < 3:
+    # pylint: disable=redefined-builtin
+    str = unicode
 
 from glop.fakes.host_fake import FakeHost
 from glop.host import Host
@@ -82,7 +87,7 @@ class UnitTestMixin(object):
     def _call(self, host, args, stdin=None,
               returncode=None, out=None, err=None):
         if stdin is not None:
-            host.stdin.write(unicode(stdin))
+            host.stdin.write(str(stdin))
             host.stdin.seek(0)
         actual_ret = main(host, args)
         actual_out = host.stdout.getvalue()
@@ -90,9 +95,9 @@ class UnitTestMixin(object):
         if returncode is not None:
             self.assertEqual(returncode, actual_ret)
         if out is not None:
-            self.assertEqual(out, actual_out)
+            self.assertEqual(str(out), actual_out)
         if err is not None:
-            self.assertEqual(err, actual_err)
+            self.assertEqual(str(err), actual_err)
         return actual_ret, actual_out, actual_err
 
 

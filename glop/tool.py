@@ -193,7 +193,8 @@ def _interpret_grammar(host, args, grammar):
 
     if out is None:
         out = ''
-    if not isinstance(out, basestring):
+    if not isinstance(out, str) and not (
+            sys.version_info[0] < 3 and isinstance(out, basestring)):
         out = json.dumps(out, indent=2, sort_keys=True)
 
     _write(host, args.output, out)
