@@ -301,7 +301,7 @@ METHODS = {
         'needs': ['_h_succeed', '_h_fail'],
         'body': '''\
         def _h_re(self, pattern):
-            m = re.match(pattern, self.msg[self.pos:])
+            m = re.match(pattern, self.msg[self.pos:], flags=re.DOTALL)
             if m:
               self._h_succeed(m.group(0), self.pos + len(m.group(0)))
             else:

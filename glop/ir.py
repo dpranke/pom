@@ -248,7 +248,7 @@ def _can_regexpify(node, rules, visited=None):
 
 def _re_esc(node):
     if node[0] == 'lit':
-        return ''.join('\\%s' % c if (c in '[]+*?()') else c for c in node[1])
+        return ''.join('\\%s' % c if (c in '\\[]+*?()') else c for c in node[1])
     elif node[0] == 'range':
         return '[%s-%s]' % (node[1][1], node[2][1])
     elif node[0] == 're':
