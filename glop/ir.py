@@ -167,11 +167,8 @@ def _flatten(old_name, old_node, should_flatten):
 def regexpify(old_node, rules=None, force=False):
     if rules is None:
         rules = {}
-        try:
-            for _, name, val in old_node[1]:
-                rules[name] = val
-        except Exception as e:
-            import pdb; pdb.set_trace()
+        for _, name, val in old_node[1]:
+            rules[name] = val
 
     old_typ = old_node[0]
     old_subnode = old_node[1]
@@ -205,7 +202,7 @@ def regexpify(old_node, rules=None, force=False):
             return [old_typ, collapsed_subnodes, old_node[2]]
         else:
             return [old_typ, collapsed_subnodes]
-    elif old_typ in ('label',):
+    elif old_typ in ('label',) and _can_regexpify(old_subnode, rules, in_label=True):
         return [old_typ, regexpify(old_subnode, rules), old_node[2]]
     elif old_typ in ('rule',):
         rules[old_node[1]] = regexpify(old_node[2], rules)
@@ -228,22 +225,24 @@ def regexpify(old_node, rules=None, force=False):
         elif old_subnode == 'end':
             return old_node
         else:
-            return regexpify(rules[old_subnode], rules)
+            return regexpify(rules[old_subnode], rules, force=force)
     else:
         return old_node
 
 
-def _can_regexpify(node, rules, visited=None):
+def _can_regexpify(node, rules, visited=None, in_label=False):
     visited = visited or set()
     return (node[0] in ('lit', 'range', 're') or
             node == ['apply', 'anything'] or
-            (node[0] in ('not', 'plus', 'opt', 'star') and
-             _can_regexpify(node[1], rules)) or
+            (node[0] in ('not', 'opt') and
+             _can_regexpify(node[1], rules, visited, in_label)) or
+            (node[0] in ('plus', 'star') and not in_label and
+             _can_regexpify(node[1], rules, visited, in_label)) or
             (node[0] == 'apply' and not node[1] in visited and
              not node[1] == 'end' and
-            _can_regexpify(rules[node[1]], rules, visited.union({node[1]}))) or
+            _can_regexpify(rules[node[1]], rules, visited.union({node[1]}), in_label)) or
             (node[0] in ('choice', 'scope', 'seq') and
-             all(_can_regexpify(sn, rules, visited) for sn in node[1])))
+             all(_can_regexpify(sn, rules, visited, in_label) for sn in node[1])))
 
 
 def _re_esc(node):
@@ -253,7 +252,6 @@ def _re_esc(node):
         return '[%s-%s]' % (node[1][1], node[2][1])
     elif node[0] == 're':
         return node[1]
-    import pdb; pdb.set_trace()
     assert False, 'unexpected node: %s' % repr(node)
 
 

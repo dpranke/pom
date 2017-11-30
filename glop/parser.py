@@ -29,7 +29,7 @@ class Parser(object):
 
     def _r_grammar(self):
         self._h_memo(lambda: self._h_scope('grammar', [lambda: self._h_bind(lambda: self._h_star(self._s_grammar_s0_l_s, []), 'vs'),
-                                  self._r_sp,
+                                  lambda: self._h_re('(( |\t|(\r\n|\r|\n)|(//((?!(\r\n|\r|\n)).)*|/\\*((?!\\*/).)*\\*/)))*'),
                                   self._r_end,
                                   lambda: self._h_succeed(['rules', self._h_get('vs')])]), '_r_grammar')
 
@@ -38,46 +38,22 @@ class Parser(object):
                      self._r_rule])
 
     def _r_sp(self):
-        self._h_memo(lambda: self._h_star(self._r_ws, []), '_r_sp')
+        self._h_memo(lambda: self._h_re('(( |\t|(\r\n|\r|\n)|(//((?!(\r\n|\r|\n)).)*|/\\*((?!\\*/).)*\\*/)))*'), '_r_sp')
 
     def _r_ws(self):
-        self._h_memo(lambda: self._h_choose([lambda: self._h_ch(' '),
-                        lambda: self._h_ch('\t'),
-                        self._r_eol,
-                        self._r_comment]), '_r_ws')
+        self._h_memo(lambda: self._h_re('( |\t|(\r\n|\r|\n)|(//((?!(\r\n|\r|\n)).)*|/\\*((?!\\*/).)*\\*/))'), '_r_ws')
 
     def _r_eol(self):
         self._h_memo(lambda: self._h_re('(\r\n|\r|\n)'), '_r_eol')
 
     def _r_comment(self):
-        self._h_memo(lambda: self._h_choose([self._s_comment_c0,
-                        self._s_comment_c1]), '_r_comment')
-
-    def _s_comment_c0(self):
-        self._h_seq([lambda: self._h_str('//', 2),
-                     lambda: self._h_star(self._s_comment_c0_s1_s, [])])
-
-    def _s_comment_c0_s1_s(self):
-        self._h_seq([lambda: self._h_not(self._r_eol),
-                     self._r_anything])
-
-    def _s_comment_c1(self):
-        self._h_seq([lambda: self._h_str('/*', 2),
-                     lambda: self._h_star(self._s_comment_c1_s1_s, []),
-                     lambda: self._h_str('*/', 2)])
-
-    def _s_comment_c1_s1_s(self):
-        self._h_seq([lambda: self._h_not(lambda: self._h_str('*/', 2)),
-                     self._r_anything])
+        self._h_memo(lambda: self._h_re('(//((?!(\r\n|\r|\n)).)*|/\\*((?!\\*/).)*\\*/)'), '_r_comment')
 
     def _r_rule(self):
         self._h_memo(lambda: self._h_scope('rule', [lambda: self._h_bind(self._r_ident, 'i'),
-                               self._r_sp,
-                               lambda: self._h_ch('='),
-                               self._r_sp,
+                               lambda: self._h_re('(( |\t|(\r\n|\r|\n)|(//((?!(\r\n|\r|\n)).)*|/\\*((?!\\*/).)*\\*/)))*=(( |\t|(\r\n|\r|\n)|(//((?!(\r\n|\r|\n)).)*|/\\*((?!\\*/).)*\\*/)))*'),
                                lambda: self._h_bind(self._r_choice, 'cs'),
-                               self._r_sp,
-                               lambda: self._h_re('(,)?'),
+                               lambda: self._h_re('(( |\t|(\r\n|\r|\n)|(//((?!(\r\n|\r|\n)).)*|/\\*((?!\\*/).)*\\*/)))*(,)?'),
                                lambda: self._h_succeed(['rule', self._h_get('i'), self._h_get('cs')])]), '_r_rule')
 
     def _r_ident(self):
@@ -89,8 +65,7 @@ class Parser(object):
         self._h_memo(lambda: self._h_re('([a-z]|[A-Z]|_)'), '_r_id_start')
 
     def _r_id_continue(self):
-        self._h_memo(lambda: self._h_choose([self._r_id_start,
-                        self._r_digit]), '_r_id_continue')
+        self._h_memo(lambda: self._h_re('(([a-z]|[A-Z]|_)|[0-9])'), '_r_id_continue')
 
     def _r_choice(self):
         self._h_memo(lambda: self._h_scope('choice', [lambda: self._h_bind(self._r_seq, 's'),
@@ -321,7 +296,7 @@ class Parser(object):
                                    lambda: self._h_succeed(self._h_get('c'))])
 
     def _r_hex_esc(self):
-        self._h_memo(lambda: self._h_scope('hex_esc', [lambda: self._h_ch('x'),
+        self._h_memo(lambda: self._h_scope('hex_esc', [lambda: self._h_re('x'),
                                   lambda: self._h_bind(self._r_hex, 'h1'),
                                   lambda: self._h_bind(self._r_hex, 'h2'),
                                   lambda: self._h_succeed(self._f_xtou(self._h_get('h1') + self._h_get('h2')))]), '_r_hex_esc')
@@ -462,9 +437,7 @@ class Parser(object):
                                     lambda: self._h_succeed(self._f_cat(self._h_get('hs')))]), '_r_hexdigits')
 
     def _r_hex(self):
-        self._h_memo(lambda: self._h_choose([self._r_digit,
-                        lambda: self._h_range('a', 'f'),
-                        lambda: self._h_range('A', 'F')]), '_r_hex')
+        self._h_memo(lambda: self._h_re('([0-9]|[a-f]|[A-F])'), '_r_hex')
 
     def _r_digit(self):
         self._h_memo(lambda: self._h_range('0', '9'), '_r_digit')
@@ -568,7 +541,7 @@ class Parser(object):
             self._h_fail()
 
     def _h_re(self, pattern):
-        m = re.match(pattern, self.msg[self.pos:])
+        m = re.match(pattern, self.msg[self.pos:], flags=re.DOTALL)
         if m:
           self._h_succeed(m.group(0), self.pos + len(m.group(0)))
         else:
