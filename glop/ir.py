@@ -234,9 +234,9 @@ def _can_regexpify(node, rules, visited=None, in_label=False):
     visited = visited or set()
     return (node[0] in ('lit', 'range', 're') or
             node == ['apply', 'anything'] or
-            (node[0] in ('not', 'opt') and
+            (node[0] in ('not',) and
              _can_regexpify(node[1], rules, visited, in_label)) or
-            (node[0] in ('plus', 'star') and not in_label and
+            (node[0] in ('opt', 'plus', 'star') and not in_label and
              _can_regexpify(node[1], rules, visited, in_label)) or
             (node[0] == 'apply' and not node[1] in visited and
              not node[1] == 'end' and
