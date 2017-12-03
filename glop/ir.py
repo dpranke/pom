@@ -164,7 +164,7 @@ def _flatten(old_name, old_node, should_flatten):
     return new_node, new_rules
 
 
-def regexpify(old_node, rules=None, force=False):
+def regexpify(old_node, rules=None, force=False, rules_to_re=None):
     if rules is None:
         rules = {}
         for _, name, val in old_node[1]:
@@ -179,6 +179,8 @@ def regexpify(old_node, rules=None, force=False):
         else:
             return [old_typ, old_subnode]
     elif old_typ == 'rules':
+        if rules_to_re is not None:
+          return [old_typ, [regexpify(sn, rules) if sn[1] in rules_to_re else sn for sn in old_subnode]]
         return [old_typ, [regexpify(sn, rules) for sn in old_subnode]]
     elif old_typ in ('scope', 'seq'):
         subnodes = [regexpify(sn, rules, force=True) for sn in old_subnode]
