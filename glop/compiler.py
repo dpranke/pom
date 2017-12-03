@@ -32,7 +32,6 @@ class Compiler(object):
         self._identifiers = self.templates.IDENTIFIERS
         self._natives = self.templates.METHODS
         self._needed = set(['_h_err'])
-        self._regexps = {}
 
     def compile(self):
         ast = self.grammar.ast
@@ -160,7 +159,7 @@ class Compiler(object):
 
     def _empty_(self, _node, as_callable):
         if as_callable:
-            return ''
+            return 'lambda: None'
         else:
             return []
 
