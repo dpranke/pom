@@ -148,6 +148,18 @@ METHODS = {
             return s.join(vs)
         ''',
     },
+    '_f_pos': {
+        'body': '''\
+        def _f_pos(self):
+            return self.pos
+        ''',
+    },
+    '_f_slice': {
+        'body': '''\
+        def _f_slice(self, x, y):
+            return self.msg[x:y]
+        ''',
+    },
     '_f_utoi': {
         'body': '''\
         def _f_utoi(self, s):
