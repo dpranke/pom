@@ -18,6 +18,7 @@ class Parser(object):
         self.pos = 0
         self.failed = False
         self.errpos = 0
+        self._regexps = {}
         self._scopes = []
         self._cache = {}
 
@@ -541,7 +542,11 @@ class Parser(object):
             self._h_fail()
 
     def _h_re(self, pattern):
-        m = re.match(pattern, self.msg[self.pos:], flags=re.DOTALL)
+        try:
+            pat = self._regexps[pattern]
+        except KeyError as e:
+            pat = self._regexps.setdefault(pattern, re.compile(pattern, flags=re.DOTALL))
+        m = pat.match(self.msg, self.pos, self.end)
         if m:
           self._h_succeed(m.group(0), self.pos + len(m.group(0)))
         else:
