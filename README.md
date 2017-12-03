@@ -36,7 +36,6 @@ The code is only implemented in Python.
 Things that still need to be implemented
 ----------------------------------------
 
--   Support for character ranges.
 -   Support for inheritance and external rules.
 -   Concrete syntax trees and preserving comments when pretty-printing
     grammars (and more consistency for handling `->` for ASTs).
@@ -52,7 +51,6 @@ Things that still need to be implemented
 -   Handling of indentation-sensitive grammars.
 -   Templating (?).
 -   Handling of large inputs and benchmarking.
--   Simplified code generation (less redundancy between rules).
 -   LPEG-style bytecode?
 -   Generators for languages other than Python.
 -   Grep-like matching (i.e., LPEG-style pattern matching and
