@@ -23,7 +23,7 @@ if sys.version_info[0] < 3:
     str = unicode
 
 
-class Host(object):
+class Host(object):  # pragma: no cover
     python_interpreter = sys.executable
     stderr = sys.stderr
     stdin = sys.stdin

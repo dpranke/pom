@@ -20,7 +20,7 @@ if sys.version_info[0] < 3:
     str = unicode
 
 
-class FakeHost(object):
+class FakeHost(object):  # pragma: no cover
     def __init__(self):
         self.stdin = io.StringIO()
         self.stdout = io.StringIO()
