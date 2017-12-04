@@ -212,7 +212,7 @@ class Compiler(object):
             return 'self._f_%s' % name
         else:
             self._need('_h_get')
-            return 'self._h_get("%s")' % name
+            return 'self._h_get(\'%s\')' % name
 
     def _memo_(self, node, as_callable):
         var = lit.encode(node[2])
@@ -263,7 +263,7 @@ class Compiler(object):
 
     def _scope_(self, node, as_callable):
         val = self._args(node[1])
-        name = '"%s"' % node[2]
+        name = '\'%s\'' % node[2]
         return self._inv('_h_scope', as_callable, [name, ', ', val])
 
     def _seq_(self, node, as_callable):

@@ -54,7 +54,7 @@ def unquote(obj, val):
 
 
 def format(box):
-    return _Box().format(box)
+    return '\n'.join(l.rstrip() for l in _Box().format(box).splitlines())
 
 
 class _Box(object):

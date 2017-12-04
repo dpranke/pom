@@ -49,7 +49,7 @@ defs = {
         # BUILT-IN FUNCTIONS
         '_f_cat': {
             'lines': ['v', 'def _f_cat(self, strs):',
-                           '    return "".join(strs)']},
+                           '    return \'\'.join(strs)']},
         '_f_is_unicat': {
             'imports': ['import unicodedata'],
             'lines': ['v', 'def _f_is_unicat(self, var, cat):',
@@ -112,10 +112,10 @@ defs = {
                            '        else:',
                            '            colno += 1',
                            '    if self.errpos == len(self.msg):',
-                           '        thing = "end of input"',
+                           '        thing = \'end of input\'',
                            '    else:',
                            '        thing = \'"%s"\' % self.msg[self.errpos]',
-                           '    err_str = "%s:%d Unexpected %s at column %d" % (',
+                           '    err_str = \'%s:%d Unexpected %s at column %d\' % (',
                            '        self.fname, lineno, thing, colno)',
                            '    return None, err_str, self.errpos']},
         '_h_fail': {
