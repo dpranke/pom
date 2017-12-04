@@ -67,23 +67,16 @@ class Compiler(object):
         methods += self._native_methods_of_type('_h_')
 
         args = {
-          'bindings_fields': '',
           'classname': self.classname,
           'imports': imports_str,
-          'main_header': '',
-          'main_footer': '',
-          'memoizing_fields': '',
+          'main_wanted': self.main_wanted,
+          'memoize': self.memoize,
           'methods': methods,
+          'scopes_wanted': False,
           'starting_rule': self.grammar.starting_rule,
         }
-        if self.main_wanted:
-            args['main_header'] = self.templates.MAIN_HEADER.format(**args)
-            args['main_footer'] = self.templates.MAIN_FOOTER.format(**args)
-        args['optional_fields'] = ''
         if '_h_set' in self._needed and '_h_scope' in self._needed:
-            args['optional_fields'] += '        self._scopes = []\n'
-        if self.memoize:
-            args['optional_fields'] += '        self._cache = {}\n'
+            args['scopes_wanted'] = True 
 
         b = box.format(self.templates.BOXES['text'], args)
         return b, None

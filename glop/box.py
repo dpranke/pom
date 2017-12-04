@@ -24,19 +24,26 @@ class _Box(object):
 
     def format(self, box, val):
         if isinstance(box, list):
-            meth = getattr(self, box[0])
+            meth = getattr(self, 'op_' + box[0])
             return meth(box, val)
         else:
             return box
 
-    def iv(self, box, val):
-        return '    ' + '\n    '.join(self.v(box, val).splitlines())
-
-    def v(self, box, val):
-        return '\n'.join(self.format(b, val) for b in box[1:])
-
-    def h(self, box, val):
+    def op_h(self, box, val):
         return ''.join(self.format(b, val) for b in box[1:])
 
-    def var(self, box, val):
+    def op_if(self, box, val):
+        if val.get(box[1]):
+            return self.format(box[2], val)
+        if len(box) == 4:
+            return self.format(box[3], val)
+        return ''
+
+    def op_iv(self, box, val):
+        return '    ' + '\n    '.join(self.op_v(box, val).splitlines())
+
+    def op_v(self, box, val):
+        return '\n'.join(self.format(b, val) for b in box[1:])
+
+    def op_var(self, box, val):
         return val.get(box[1], '')

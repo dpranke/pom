@@ -18,116 +18,90 @@ IMPORTS = {'import sys'}
 BOXES = {
     'text': [
         'v',
-        ['var', 'main_header'],
+        ['if', 'main_wanted',
+         ['v',
+          '#!/usr/bin/env python',
+          '',
+          'from __future__ import print_function',
+          '']],
         ['var', 'imports'],
         '',
         'if sys.version_info[0] < 3:',
         ['iv',
-            '# pylint: disable=redefined-builtin',
-            'chr = unichr',
-            'str = unicode'],
+         '# pylint: disable=redefined-builtin',
+         'chr = unichr',
+         'str = unicode'],
         '',
         '# pylint: disable=line-too-long',
         '',
         '',
         ['h', 'class ', ['var', 'classname'], '(object):'],
         ['iv', 
-            'def __init__(self, msg, fname):',
-            ['iv',
-                'self.msg = str(msg)',
-                'self.end = len(self.msg)',
-                'self.fname = fname',
-                'self.val = None',
-                'self.pos = 0',
-                'self.failed = False',
-                'self.errpos = 0',
-                'self._regexps = {}',
-                ['var', 'optional_fields']],
-            '',
-            'def parse(self):',
-            ['iv',
-                ['h', 'self.', ['var', 'starting_rule'], '()'],
-                'if self.failed:',
-                ['iv', 
-                    'return self._h_err()'],
-                'return self.val, None, self.pos']],
+         'def __init__(self, msg, fname):',
+         ['iv',
+          'self.msg = str(msg)',
+          'self.end = len(self.msg)',
+          'self.fname = fname',
+          'self.val = None',
+          'self.pos = 0',
+          'self.failed = False',
+          'self.errpos = 0',
+          'self._regexps = {}',
+          ['if', 'scopes_wanted',
+           ['h', 'self._scopes = []']],
+          ['if', 'memoize',
+           ['h', 'self._cache = {}']]],
+         '',
+         'def parse(self):',
+         ['iv',
+          ['h', 'self.', ['var', 'starting_rule'], '()'],
+          'if self.failed:',
+          ['iv', 
+           'return self._h_err()'],
+          'return self.val, None, self.pos']],
         ['var', 'methods'],
-        ['var', 'main_footer']],
+        ['if', 'main_wanted',
+         ['v',
+          '',
+          ['h',
+           'def main(argv=sys.argv[1:], stdin=sys.stdin, stdout=sys.stdout,'],
+          ['h',
+           '         stderr=sys.stderr, exists=os.path.exists, opener=open):'],
+          ['iv',
+           'arg_parser = argparse.ArgumentParser()',
+           'arg_parser.add_argument(\'file\', nargs=\'?\')',
+           'args = arg_parser.parse_args(argv),',
+           '',
+           'if not args.file or args.file[1] == \'-\':',
+           ['iv',
+            'fname = \'<stdin>\'',
+            'fp = stdin'],
+           'elif not exists(args.file):',
+           ['iv',
+            'print(\'Error: file "%s" not found.\' % args.file, file=stderr)',
+            'return 1'],
+           'else:',
+           ['iv',
+            'fname = args.file',
+            'fp = opener(fname)'],
+           '',
+           'msg = fp.read()',
+           ['h', 'obj, err, _ = ', ['var', 'classname'], '(msg, fname).parse()'],
+           'if err:',
+           ['iv',
+            'print(err, file=stderr)',
+            'return 1'],
+           'print(json.dumps(obj), file=stdout)',
+           'return 0'],
+          '',
+          'if __name__ == \'__main__\':',
+          ['iv',
+           'sys.exit(main())'],
+          '']]],
 }
-
-
-TEXT = '''\
-{main_header}
-{imports}
-
-if sys.version_info[0] < 3:
-    # pylint: disable=redefined-builtin
-    chr = unichr
-    str = unicode
-
-# pylint: disable=line-too-long
-
-
-class {classname}(object):
-    def __init__(self, msg, fname):
-        self.msg = str(msg)
-        self.end = len(self.msg)
-        self.fname = fname
-        self.val = None
-        self.pos = 0
-        self.failed = False
-        self.errpos = 0
-        self._regexps = {{}}
-{optional_fields}
-    def parse(self):
-        self.{starting_rule}()
-        if self.failed:
-            return self._h_err()
-        return self.val, None, self.pos
-{methods}
-{main_footer}
-'''
 
 MAIN_IMPORTS = {'import argparse', 'import json', 'import os', 'import sys'}
 
-MAIN_HEADER = '''\
-#!/usr/bin/env python
-
-from __future__ import print_function
-
-'''
-
-MAIN_FOOTER = '''\
-
-
-def main(argv=sys.argv[1:], stdin=sys.stdin, stdout=sys.stdout,
-         stderr=sys.stderr, exists=os.path.exists, opener=open):
-    arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument('file', nargs='?')
-    args = arg_parser.parse_args(argv)
-
-    if not args.file or args.file[1] == '-':
-        fname = '<stdin>'
-        fp = stdin
-    elif not exists(args.file):
-        print('Error: file "%s" not found.' % args.file, file=stderr)
-        return 1
-    else:
-        fname = args.file
-        fp = opener(fname)
-
-    msg = fp.read()
-    obj, err, _ = {classname}(msg, fname).parse()
-    if err:
-        print(err, file=stderr)
-        return 1
-    print(json.dumps(obj), file=stdout)
-    return 0
-
-
-if __name__ == '__main__':
-    sys.exit(main())
-'''
 
 
 METHOD = '''\
