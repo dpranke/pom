@@ -115,8 +115,8 @@ defs = {
                            '        thing = \'end of input\'',
                            '    else:',
                            '        thing = \'"%s"\' % self.msg[self.errpos]',
-                           '    err_str = \'%s:%d Unexpected %s at column %d\' % (',
-                           '        self.fname, lineno, thing, colno)',
+                           '    err_str = \'%s:%d Unexpected %s at column %d\' % (self.fname, lineno',
+                           '                                                    thing, colno)',
                            '    return None, err_str, self.errpos']},
         '_h_fail': {
             'lines': ['v', 'def _h_fail(self):',
@@ -190,9 +190,9 @@ defs = {
                            '        pat = self._regexps.setdefault(pattern, re.compile(pattern, flags=re.DOTALL))',
                            '    m = pat.match(self.msg, self.pos, self.end)',
                            '    if m:',
-                           '      self._h_succeed(m.group(0), self.pos + len(m.group(0)))',
+                           '        self._h_succeed(m.group(0), self.pos + len(m.group(0)))',
                            '    else:',
-                           '      self._h_fail()']},
+                           '        self._h_fail()']},
         '_h_rewind': {
             'needs': ['_h_succeed'],
             'lines': ['v', 'def _h_rewind(self, pos):',
