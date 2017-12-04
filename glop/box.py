@@ -69,7 +69,7 @@ class _Box(object):
             meth = getattr(self, 'op_' + box[0])
             return meth(box)
         else:
-            return box
+            return str(box)
 
     def op_h(self, box):
         return ''.join(self.format(b) for b in box[1:])
