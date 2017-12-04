@@ -54,7 +54,6 @@ class Compiler(object):
         if self.main_wanted:
             for imp in self.templates.MAIN_IMPORTS:
                 imports.add(imp)
-        imports_str = '\n'.join(sorted(imports))
 
         methods = ''
         for _, rule, _ in self.grammar.rules:
@@ -68,7 +67,7 @@ class Compiler(object):
 
         args = {
           'classname': self.classname,
-          'imports': imports_str,
+          'imports': sorted(imports),
           'main_wanted': self.main_wanted,
           'memoize': self.memoize,
           'methods': methods,
@@ -78,8 +77,8 @@ class Compiler(object):
         if '_h_set' in self._needed and '_h_scope' in self._needed:
             args['scopes_wanted'] = True 
 
-        b = box.format(self.templates.BOXES['text'], args)
-        return b, None
+        b = box.format(box.unquote(self.templates.BOXES['text'], args))
+        return b + '\n', None
 
     def _native_methods_of_type(self, ty):
         methods = ''

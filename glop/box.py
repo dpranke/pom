@@ -13,37 +13,61 @@
 # limitations under the License.
 
 
-def format(box, val):
-    b = _Box(ind=4)
-    return b.format(box, val)
+def unquote(obj, val):
+    if isinstance(obj, list):
+        if obj[0] == 'if':
+            if val[obj[1]]:
+                return [unquote(obj[2], val)]
+            elif len(obj) == 4:
+                return [unquote(obj[3], val)]
+            else:
+                return []
+        elif obj[0] == 'for':
+            r = []
+            var = obj[1]
+            for v in val[obj[2]]:
+                r.append(unquote(obj[3], {var: v}))
+            return r
+        elif obj[0] == 'var':
+            return val[obj[1]]
+        else:
+            r = []
+            for el in obj:
+                if isinstance(el, list) and el:
+                    if el[0] in ('if', 'for'):
+                        r.extend(unquote(el, val))
+                    else:
+                        r.append(unquote(el, val))
+                else:
+                    r.append(unquote(el, val))
+            return r 
+    else:
+        return obj
+
+
+def format(box):
+    return _Box().format(box)
 
 
 class _Box(object):
-    def __init__(self, ind):
-        self.ind = ind
+    def __init__(self, indent=4, width=80):
+        self.indent = indent
+        self.istr = ' ' * self.indent
+        self.ivstr = '\n' + self.istr
+        self.width = width
 
-    def format(self, box, val):
+    def format(self, box):
         if isinstance(box, list):
             meth = getattr(self, 'op_' + box[0])
-            return meth(box, val)
+            return meth(box)
         else:
             return box
 
-    def op_h(self, box, val):
-        return ''.join(self.format(b, val) for b in box[1:])
+    def op_h(self, box):
+        return ''.join(self.format(b) for b in box[1:])
 
-    def op_if(self, box, val):
-        if val.get(box[1]):
-            return self.format(box[2], val)
-        if len(box) == 4:
-            return self.format(box[3], val)
-        return ''
+    def op_iv(self, box):
+        return self.istr + self.ivstr.join(self.op_v(box).splitlines())
 
-    def op_iv(self, box, val):
-        return '    ' + '\n    '.join(self.op_v(box, val).splitlines())
-
-    def op_v(self, box, val):
-        return '\n'.join(self.format(b, val) for b in box[1:])
-
-    def op_var(self, box, val):
-        return val.get(box[1], '')
+    def op_v(self, box):
+        return '\n'.join(self.format(b) for b in box[1:])
