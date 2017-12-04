@@ -18,14 +18,14 @@ IMPORTS = {'import sys'}
 BOXES = {
     'text': [
         'v',
-        ['if', 'main_wanted',
+        ['if', '.main_wanted',
          ['v',
           '#!/usr/bin/env python',
           '',
           'from __future__ import print_function',
           '']],
-        ['for', 'i', 'imports',
-         ['var', 'i']],
+        ['for', 'imports',
+         ['var', '.']],
         '',
         'if sys.version_info[0] < 3:',
         ['iv',
@@ -36,7 +36,7 @@ BOXES = {
         '# pylint: disable=line-too-long',
         '',
         '',
-        ['h', 'class ', ['var', 'classname'], '(object):'],
+        ['h', 'class ', ['var', '.classname'], '(object):'],
         ['iv', 
          'def __init__(self, msg, fname):',
          ['iv',
@@ -48,20 +48,24 @@ BOXES = {
           'self.failed = False',
           'self.errpos = 0',
           'self._regexps = {}',
-          ['if', 'scopes_wanted',
+          ['if', '.scopes_wanted',
            ['h', 'self._scopes = []']],
-          ['if', 'memoize',
+          ['if', '.memoize',
            ['h', 'self._cache = {}']]],
          '',
          'def parse(self):',
          ['iv',
-          ['h', 'self.', ['var', 'starting_rule'], '()'],
+          ['h', 'self.', ['var', '.starting_rule'], '()'],
           'if self.failed:',
           ['iv', 
            'return self._h_err()'],
-          'return self.val, None, self.pos']],
-        ['var', 'methods'],
-        ['if', 'main_wanted',
+          'return self.val, None, self.pos'],
+         ['for', 'methods',
+          ['v',
+           '',
+           ['h', 'def ', ['var', '.name'], '(self):'],
+           ['i', ['var', '.lines']]]]],
+        ['if', '.main_wanted',
          ['v',
           '',
           ['h',
@@ -87,7 +91,7 @@ BOXES = {
             'fp = opener(fname)'],
            '',
            'msg = fp.read()',
-           ['h', 'obj, err, _ = ', ['var', 'classname'], '(msg, fname).parse()'],
+           ['h', 'obj, err, _ = ', ['var', '.classname'], '(msg, fname).parse()'],
            'if err:',
            ['iv',
             'print(err, file=stderr)',
@@ -103,13 +107,6 @@ BOXES = {
 
 MAIN_IMPORTS = {'import argparse', 'import json', 'import os', 'import sys'}
 
-
-
-METHOD = '''\
-
-    def {rule}(self):
-{lines}
-'''
 
 IDENTIFIERS = {
     'false': 'False',

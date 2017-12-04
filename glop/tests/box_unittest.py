@@ -24,54 +24,54 @@ class TestUnquote(unittest.TestCase):
 
     def test_bare_for(self):
         self.assertEqual([1, 2, 3],
-                         box.unquote(['for', 'el', 'els', ['var', 'el']],
+                         box.unquote(['for', 'els', ['var', '.']],
                                      {'els': [1, 2, 3]}))
 
     def test_bare_if(self):
         self.assertEqual(['baz'],
-                         box.unquote(['if', 'bar', 'baz'],
+                         box.unquote(['if', '.bar', 'baz'],
                                      {'bar': True}))
 
         self.assertEqual([],
-                         box.unquote(['if', 'bar', 'baz'],
+                         box.unquote(['if', '.bar', 'baz'],
                                      {'bar': False}))
 
         self.assertEqual(['snob'],
-                         box.unquote(['if', 'bar', 'baz', 'snob'],
+                         box.unquote(['if', '.bar', 'baz', 'snob'],
                                      {'bar': False})) 
 
     def test_bare_var(self):
         self.assertEqual(4, 
-                         box.unquote(['var', 'baz'],
+                         box.unquote(['var', '.baz'],
                                      {'baz': 4}))
 
     def test_spliced_for(self):
         self.assertEqual(['foo', 1, 2, 3, 'baz'],
                          box.unquote(['foo',
-                                      ['for', 'el', 'els', ['var', 'el']],
+                                      ['for', 'els', ['var', '.']],
                                       'baz'],
                                      {'els': [1, 2, 3]}))
 
     def test_spliced_if_true(self):
         self.assertEqual(['foo', 'baz', 'quux'],
-                         box.unquote(['foo', ['if', 'bar', 'baz'], 'quux'],
+                         box.unquote(['foo', ['if', '.bar', 'baz'], 'quux'],
                                      {'bar': True}))
 
     def test_spliced_if_false_is_empty(self):
         self.assertEqual(['foo', 'quux'],
-                         box.unquote(['foo', ['if', 'bar', 'baz'], 'quux'],
+                         box.unquote(['foo', ['if', '.bar', 'baz'], 'quux'],
                                      {'bar': False}))
 
     def test_spliced_if_false_value(self):
         self.assertEqual(['foo', 'snob', 'quux'],
                          box.unquote(['foo',
-                                      ['if', 'bar', 'baz', 'snob'],
+                                      ['if', '.bar', 'baz', 'snob'],
                                       'quux'],
                                      {'bar': False}))
 
     def test_spliced_var(self):
         self.assertEqual(['foo', 4, 'quux'],
-                          box.unquote(['foo', ['var', 'baz'], 'quux'],
+                          box.unquote(['foo', ['var', '.baz'], 'quux'],
                                       {'baz': 4}))
 
 

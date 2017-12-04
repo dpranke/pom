@@ -16,7 +16,12 @@
 def unquote(obj, val):
     if isinstance(obj, list):
         if obj[0] == 'if':
-            if val[obj[1]]:
+            assert obj[1][0] == '.'
+            if obj[1] == '.':
+                flg = val
+            else:
+                flg = val[obj[1][1:]]
+            if flg:
                 return [unquote(obj[2], val)]
             elif len(obj) == 4:
                 return [unquote(obj[3], val)]
@@ -24,12 +29,15 @@ def unquote(obj, val):
                 return []
         elif obj[0] == 'for':
             r = []
-            var = obj[1]
-            for v in val[obj[2]]:
-                r.append(unquote(obj[3], {var: v}))
+            for v in val[obj[1]]:
+                r.append(unquote(obj[2], v))
             return r
         elif obj[0] == 'var':
-            return val[obj[1]]
+            assert obj[1][0] == '.'
+            if obj[1] == '.':
+                return val
+            else:
+                return val[obj[1][1:]]
         else:
             r = []
             for el in obj:
@@ -65,6 +73,9 @@ class _Box(object):
 
     def op_h(self, box):
         return ''.join(self.format(b) for b in box[1:])
+
+    def op_i(self, box):
+        return self.istr + self.ivstr.join(self.format(box[1]).splitlines())
 
     def op_iv(self, box):
         return self.istr + self.ivstr.join(self.op_v(box).splitlines())

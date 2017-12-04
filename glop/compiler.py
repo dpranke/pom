@@ -55,38 +55,35 @@ class Compiler(object):
             for imp in self.templates.MAIN_IMPORTS:
                 imports.add(imp)
 
-        methods = ''
+        methods = []
         for _, rule, _ in self.grammar.rules:
-            methods += self.templates.METHOD.format(
-               rule=rule,
-               lines=('        ' + '\n        '.join(self._methods[rule])))
+            methods.append({'name': rule,
+                            'lines': ['v'] + self._methods[rule]})
 
-        methods += self._native_methods_of_type('_r_')
-        methods += self._native_methods_of_type('_f_')
-        methods += self._native_methods_of_type('_h_')
+        methods.extend(self._native_methods_of_type('_r_'))
+        methods.extend(self._native_methods_of_type('_f_'))
+        methods.extend(self._native_methods_of_type('_h_'))
 
+        scopes_wanted = ('_h_set' in self._needed and
+                         '_h_scope' in self._needed)
         args = {
           'classname': self.classname,
           'imports': sorted(imports),
           'main_wanted': self.main_wanted,
           'memoize': self.memoize,
           'methods': methods,
-          'scopes_wanted': False,
+          'scopes_wanted': scopes_wanted,
           'starting_rule': self.grammar.starting_rule,
         }
-        if '_h_set' in self._needed and '_h_scope' in self._needed:
-            args['scopes_wanted'] = True 
 
         b = box.format(box.unquote(self.templates.BOXES['text'], args))
         return b + '\n', None
 
     def _native_methods_of_type(self, ty):
-        methods = ''
+        methods = []
         for name in sorted(r for r in self._needed if r.startswith(ty)):
-            methods += '\n'
-            lines = textwrap.dedent(self._natives[name]['body']).splitlines()
-            for l in lines:
-                methods += '    %s\n' % (l,)
+            txt = textwrap.dedent(self._natives[name]['body'])
+            methods.append({'name': name, 'lines': ['v'] + txt.splitlines()})
         return methods
 
     def _gen(self, node, as_callable):
