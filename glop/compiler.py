@@ -58,7 +58,8 @@ class Compiler(object):
         methods = []
         for _, rule, _ in self.grammar.rules:
             methods.append({'name': rule,
-                            'lines': ['v'] + self._methods[rule]})
+                            'lines': ['v', 'def %s(self):' % rule,
+                                           ['iv'] + self._methods[rule]]})
 
         methods.extend(self._native_methods_of_type('_r_'))
         methods.extend(self._native_methods_of_type('_f_'))
@@ -76,14 +77,16 @@ class Compiler(object):
           'starting_rule': self.grammar.starting_rule,
         }
 
-        b = box.format(box.unquote(self.templates.BOXES['text'], args))
+        b = box.format(box.unquote(self.templates.TEXT, args))
         return b + '\n', None
 
     def _native_methods_of_type(self, ty):
         methods = []
         for name in sorted(r for r in self._needed if r.startswith(ty)):
-            txt = textwrap.dedent(self._natives[name]['body'])
-            methods.append({'name': name, 'lines': ['v'] + txt.splitlines()})
+            methods.append({
+                'name': name,
+                'lines': self._natives[name]['lines']
+            })
         return methods
 
     def _gen(self, node, as_callable):
