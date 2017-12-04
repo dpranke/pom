@@ -123,11 +123,11 @@ class Compiler(object):
             self._need(need)
 
     def _args(self, args):
-        box = ['v', '[']
+        box = ['v']
         for arg in args[:-1]:
             box.append(['h', self._gen(arg, True), ','])
-        box.append(self._gen(args[-1], True))
-        return box + [']']
+        box.append(['h', self._gen(args[-1], True)])
+        return ['h', '[', box, ']']
 
     #
     # Handlers for each AST node follow.

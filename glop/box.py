@@ -72,7 +72,21 @@ class _Box(object):
             return str(box)
 
     def op_h(self, box):
-        return ''.join(self.format(b) for b in box[1:])
+        r = ''
+        cur_line = ''
+        for b in box[1:]:
+            b_lines = self.format(b).splitlines()
+            if len(b_lines) > 1:
+                r += cur_line + b_lines[0]
+                if len(b_lines) > 2:
+                    r += '\n' + self.format(['v'] +
+                                            [['h', ['w', cur_line], b_line]
+                                             for b_line in b_lines[1:-1]])
+                r += '\n'
+                cur_line = self.format(['h', ['w', cur_line], b_lines[-1]])
+            else:
+                cur_line += b_lines[0]
+        return r + cur_line
 
     def op_i(self, box):
         return self.istr + self.ivstr.join(self.format(box[1]).splitlines())
@@ -82,3 +96,6 @@ class _Box(object):
 
     def op_v(self, box):
         return '\n'.join(self.format(b) for b in box[1:])
+
+    def op_w(self, box):
+        return ' ' * len(box[1])
