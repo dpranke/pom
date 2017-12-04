@@ -14,6 +14,7 @@
 
 import textwrap
 
+from . import box
 from . import ir
 from . import lit
 from . import python_templates
@@ -83,7 +84,9 @@ class Compiler(object):
             args['optional_fields'] += '        self._scopes = []\n'
         if self.memoize:
             args['optional_fields'] += '        self._cache = {}\n'
-        return self.templates.TEXT.format(**args), None
+
+        b = box.format(self.templates.BOXES['text'], args)
+        return b, None
 
     def _native_methods_of_type(self, ty):
         methods = ''

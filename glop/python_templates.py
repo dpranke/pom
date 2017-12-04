@@ -15,8 +15,50 @@
 
 IMPORTS = {'import sys'}
 
+BOXES = {
+    'text': [
+        'v',
+        ['var', 'main_header'],
+        ['var', 'imports'],
+        '',
+        'if sys.version_info[0] < 3:',
+        ['iv',
+            '# pylint: disable=redefined-builtin',
+            'chr = unichr',
+            'str = unicode'],
+        '',
+        '# pylint: disable=line-too-long',
+        '',
+        '',
+        ['h', 'class ', ['var', 'classname'], '(object):'],
+        ['iv', 
+            'def __init__(self, msg, fname):',
+            ['iv',
+                'self.msg = str(msg)',
+                'self.end = len(self.msg)',
+                'self.fname = fname',
+                'self.val = None',
+                'self.pos = 0',
+                'self.failed = False',
+                'self.errpos = 0',
+                'self._regexps = {}',
+                ['var', 'optional_fields']],
+            '',
+            'def parse(self):',
+            ['iv',
+                ['h', 'self.', ['var', 'starting_rule'], '()'],
+                'if self.failed:',
+                ['iv', 
+                    'return self._h_err()'],
+                'return self.val, None, self.pos']],
+        ['var', 'methods'],
+        ['var', 'main_footer']],
+}
+
+
 TEXT = '''\
-{main_header}{imports}
+{main_header}
+{imports}
 
 if sys.version_info[0] < 3:
     # pylint: disable=redefined-builtin
@@ -42,7 +84,9 @@ class {classname}(object):
         if self.failed:
             return self._h_err()
         return self.val, None, self.pos
-{methods}{main_footer}'''
+{methods}
+{main_footer}
+'''
 
 MAIN_IMPORTS = {'import argparse', 'import json', 'import os', 'import sys'}
 
