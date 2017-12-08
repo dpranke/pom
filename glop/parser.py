@@ -495,7 +495,7 @@ class Parser(object):
             thing = 'end of input'
         else:
             thing = '"%s"' % self.msg[self.errpos]
-        err_str = '%s:%d Unexpected %s at column %d' % (self.fname, lineno
+        err_str = '%s:%d Unexpected %s at column %d' % (self.fname, lineno,
                                                         thing, colno)
         return None, err_str, self.errpos
 

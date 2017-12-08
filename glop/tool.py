@@ -19,7 +19,7 @@ import sys
 
 d = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 if not d in sys.path:
-    sys.path.append(d)
+    sys.path.insert(0, d)
 
 # We use absolute paths rather than relative paths because this file can be
 # invoked directly as a script (and isn't considered part of a module in

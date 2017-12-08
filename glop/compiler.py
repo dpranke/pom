@@ -143,7 +143,7 @@ class Compiler(object):
         if as_callable:
             return 'self.%s' % rule_name
         else:
-            return 'self.%s()'
+            return 'self.%s()' % rule_name
 
     def _choice_(self, node, as_callable):
         return self._inv('_h_choose', as_callable, [self._args(node[1])])
@@ -170,7 +170,7 @@ class Compiler(object):
         else:
             self._need('_h_str')
             if as_callable:
-                return ['h', 'lambda: self._h_str(', arg, ', ', len(node[1]), 
+                return ['h', 'lambda: self._h_str(', arg, ', ', len(node[1]),
                         ')']
             else:
                 return ['h', 'self._h_str(', arg, ', ', len(node[1]), ')']
