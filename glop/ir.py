@@ -115,7 +115,8 @@ def flatten(ast, should_flatten):
 
     new_rules = []
     for _, old_name, old_node in ast[1]:
-        new_subnode, new_subrules = _flatten(old_name, old_node, should_flatten)
+        new_subnode, new_subrules = _flatten(old_name, old_node,
+                                             should_flatten)
         new_rules += [['rule', old_name, new_subnode]] + new_subrules
     return ['rules', new_rules]
 
@@ -180,12 +181,13 @@ def regexpify(old_node, rules=None, force=False, rules_to_re=None):
             return [old_typ, old_subnode]
     elif old_typ == 'rules':
         if rules_to_re is not None:
-          return [old_typ, [regexpify(sn, rules) if sn[1] in rules_to_re else sn for sn in old_subnode]]
+          return [old_typ, [regexpify(sn, rules)
+                            if sn[1] in rules_to_re else sn
+                            for sn in old_subnode]]
         return [old_typ, [regexpify(sn, rules) for sn in old_subnode]]
     elif old_typ in ('scope', 'seq'):
         subnodes = [regexpify(sn, rules, force=True) for sn in old_subnode]
         collapsed_subnodes = []
-        re_subnodes = []
         l = None
         while subnodes:
             r = subnodes.pop(0)
@@ -204,7 +206,8 @@ def regexpify(old_node, rules=None, force=False, rules_to_re=None):
             return [old_typ, collapsed_subnodes, old_node[2]]
         else:
             return [old_typ, collapsed_subnodes]
-    elif old_typ in ('label',) and _can_regexpify(old_subnode, rules, in_label=True):
+    elif old_typ in ('label',) and _can_regexpify(old_subnode, rules,
+                                                  in_label=True):
         return [old_typ, regexpify(old_subnode, rules), old_node[2]]
     elif old_typ in ('rule',):
         rules[old_node[1]] = regexpify(old_node[2], rules)
@@ -242,14 +245,17 @@ def _can_regexpify(node, rules, visited=None, in_label=False):
              _can_regexpify(node[1], rules, visited, in_label)) or
             (node[0] == 'apply' and not node[1] in visited and
              not node[1] == 'end' and
-            _can_regexpify(rules[node[1]], rules, visited.union({node[1]}), in_label)) or
+            _can_regexpify(rules[node[1]], rules, visited.union({node[1]}),
+                           in_label)) or
             (node[0] in ('choice', 'scope', 'seq') and
-             all(_can_regexpify(sn, rules, visited, in_label) for sn in node[1])))
+             all(_can_regexpify(sn, rules, visited, in_label)
+                 for sn in node[1])))
 
 
 def _re_esc(node):
     if node[0] == 'lit':
-        return ''.join('\\%s' % c if (c in '\\[]+*?()') else c for c in node[1])
+        return ''.join('\\%s' % c if (c in '\\[].+*?^$()') else c
+                       for c in node[1])
     elif node[0] == 'range':
         return '[%s-%s]' % (node[1][1], node[2][1])
     elif node[0] == 're':
