@@ -241,7 +241,7 @@ class Compiler(object):
         if as_callable:
             return ['h',
                     'lambda: ('
-                    'lambda x: self._h_succeed(x) if x else self._h_fail())(',
+                    'lambda x: self._h_succeed(x) if x is not False else self._h_fail())(',
                     val,
                     ')']
         else:

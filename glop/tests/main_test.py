@@ -252,7 +252,11 @@ class TestInterpreter(UnitTestMixin, CheckMixin, unittest.TestCase):
 
     def test_pred(self):
         self.check_match("grammar = ?( 1 ) end ,", '')
-        self.check_match("grammar = ?( 0 ) end ,", '', returncode=1)
+
+        # Predicates must explicitly evaluate to false, rather than just
+        # being false-y. This allows pos() to return 0 at the start of string.
+        self.check_match("grammar = ?( 0 ) end ,", '')
+        self.check_match("grammar = ?( false ) end ,", '', returncode=1)
 
     def test_py_plus(self):
         self.check_match("grammar = end -> 1 + 1 ,", '',

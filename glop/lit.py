@@ -12,10 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
+
+if sys.version_info[0] < 3:
+    chr = unichr
+
+
 def _enc(ch, esc_dquote):
     bslash = '\\'
     dquote = '"'
-    if dquote < ch < bslash or bslash < ch < '\x80' or ch in ' !':
+    if dquote < ch < bslash or bslash < ch < chr(128) or ch in ' !':
         return ch
     elif ch == bslash:
         return bslash + bslash
