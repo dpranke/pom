@@ -175,8 +175,8 @@ def regexpify(old_node, rules=None, force=False, rules_to_re=None):
     old_subnode = old_node[1]
     if old_typ == 'choice':
         if all(_can_regexpify(sn, rules) for sn in old_subnode):
-            return ['re', '(' + '|'.join(regexpify(sn, rules, force=True)[1]
-                                         for sn in old_subnode) + ')']
+            return ['re', _merge_choices(regexpify(sn, rules, force=True)[1]
+                                         for sn in old_subnode)]
         else:
             return [old_typ, old_subnode]
     elif old_typ == 'rules':
@@ -213,11 +213,11 @@ def regexpify(old_node, rules=None, force=False, rules_to_re=None):
         rules[old_node[1]] = regexpify(old_node[2], rules)
         return [old_typ, old_node[1], rules[old_node[1]]]
     elif old_typ == 'opt' and _can_regexpify(old_subnode, rules):
-        return ['re', '(%s)?' % regexpify(old_subnode, rules, force=True)[1]]
+        return ['re', _post(regexpify(old_subnode, rules, force=True)[1], '?')]
     elif old_typ == 'plus' and _can_regexpify(old_subnode, rules):
-        return ['re', '(%s)+' % regexpify(old_subnode, rules, force=True)[1]]
+        return ['re', _post(regexpify(old_subnode, rules, force=True)[1], '+')]
     elif old_typ == 'star' and _can_regexpify(old_subnode, rules):
-        return ['re', '(%s)*' % regexpify(old_subnode, rules, force=True)[1]]
+        return ['re', _post(regexpify(old_subnode, rules, force=True)[1], '*')]
     elif old_typ == 'not' and _can_regexpify(old_subnode, rules):
         return ['re', '(?!%s)' % regexpify(old_subnode, rules, force=True)[1]]
     elif old_typ in ('memo', 'not', 'opt', 'paren', 'plus', 'star'):
@@ -233,6 +233,19 @@ def regexpify(old_node, rules=None, force=False, rules_to_re=None):
             return regexpify(rules[old_subnode], rules, force=force)
     else:
         return old_node
+
+
+def _merge_choices(nodes):
+    nodes = list(nodes)
+    if all(n[0] == '[' for n in nodes):
+        return '[%s]' % ''.join(n[1:-1] for n in nodes)
+    return '(' + '|'.join(n for n in nodes) + ')'
+
+
+def _post(re_expr, op):
+    if re_expr[0] in ('(', '[') or len(re_expr) == 1:
+        return re_expr + op
+    return '(%s)%s' % (re_expr, op)
 
 
 def _can_regexpify(node, rules, visited=None, in_label=False):
