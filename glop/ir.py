@@ -37,16 +37,22 @@ def memoize(ast, rules_to_memoize):
 def add_builtin_vars(node):
     """Returns a new AST rewritten to support the _* vars."""
     if node[0] == 'rules':
-        return ['rules', [add_builtin_vars(rule) for rule in node[1]]]
+        new_rules = ['rules', [add_builtin_vars(rule) for rule in node[1]]]
+        # import pdb; pdb.set_trace()
+        return new_rules
     elif node[0] == 'rule':
         rule_name = node[1]
-        if node[2] == 'choice':
+        if node[2][0] == 'choice':
             choices = node[2][1]
         else:
             choices = [node[2]]
         new_choices = []
         for seq in choices:
             tag = seq[0]
+            if tag not in ('seq', 'scope'):
+                new_choices.append(seq)
+                continue
+
             terms = seq[1]
             all_is_needed = _var_is_needed('_', terms[-1])
             new_terms = []
@@ -68,8 +74,9 @@ def add_builtin_vars(node):
                 new_choices.append([tag, new_terms, rule_name])
             else:
                 new_choices.append([tag, new_terms])
+
         if len(new_choices) > 1:
-            return ['rule', rule_name, ['choices', new_choices]]
+            return ['rule', rule_name, ['choice', new_choices]]
         else:
             return ['rule', rule_name, new_choices[0]]
     else:
@@ -89,7 +96,7 @@ def _var_is_needed(name, node):
     elif ty == 'll_qual':
         return (_var_is_needed(name, node[1]) or
                 any(_var_is_needed(name, sn) for sn in node[2]))
-    elif ty == 'll_arr':
+    elif ty in ('choice', 'seq', 'll_arr', 'll_call'):
         return any(_var_is_needed(name, sn) for sn in node[1])
     return False
 
@@ -333,7 +340,10 @@ def _re_esc(node):
         return ''.join('\\%s' % c if (c in '\\[].+*?^$()') else c
                        for c in node[1])
     elif node[0] == 'range':
-        return '[%s-%s]' % (node[1][1], node[2][1])
+        try:
+            return '[%s-%s]' % (node[1][1], node[2][1])
+        except Exception as e:
+            import pdb; pdb.set_trace()
     elif node[0] == 're':
         return node[1]
     assert False, 'unexpected node: %s' % repr(node)
