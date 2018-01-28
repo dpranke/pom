@@ -23,6 +23,7 @@ class Grammar(object):
 
 
 def memoize(ast, rules_to_memoize):
+    """Returns a new AST with the given rules memoized."""
     new_rules = []
     for rule in ast[1]:
         _, name, node = rule
@@ -31,6 +32,66 @@ def memoize(ast, rules_to_memoize):
         else:
             new_rules.append(rule)
     return ['rules', new_rules]
+
+
+def add_builtin_vars(node):
+    """Returns a new AST rewritten to support the _* vars."""
+    if node[0] == 'rules':
+        return ['rules', [add_builtin_vars(rule) for rule in node[1]]]
+    elif node[0] == 'rule':
+        rule_name = node[1]
+        if node[2] == 'choice':
+            choices = node[2][1]
+        else:
+            choices = [node[2]]
+        new_choices = []
+        for seq in choices:
+            tag = seq[0]
+            terms = seq[1]
+            all_is_needed = _var_is_needed('_', terms[-1])
+            new_terms = []
+            for i, term in enumerate(terms[:-1]):
+                pos_var = '_%d' % (i + 1)
+                pos_is_needed = (all_is_needed or
+                                 any(_var_is_needed(pos_var, st)
+                                     for st in terms[i+1:]))
+                if pos_is_needed:
+                    tag = 'scope'
+                    new_terms.append(['label', term, pos_var])
+                else:
+                    new_terms.append(term)
+            if all_is_needed:
+                tag = 'scope'
+                new_terms.append(['label_all', rule_name, len(terms) - 1])
+            new_terms.append(terms[-1])
+            if tag == 'scope':
+                new_choices.append([tag, new_terms, rule_name])
+            else:
+                new_choices.append([tag, new_terms])
+        if len(new_choices) > 1:
+            return ['rule', rule_name, ['choices', new_choices]]
+        else:
+            return ['rule', rule_name, new_choices[0]]
+    else:
+        return node
+
+
+def _var_is_needed(name, node):
+    ty = node[0]
+    if ty == 'll_var' and node[1] == name:
+        return True
+    elif ty in ('eq', 'pred', 'action',
+                'll_paren', 'll_getitem', 'll_getattr'):
+        return _var_is_needed(name, node[1])
+    elif ty == 'll_plus':
+        return (_var_is_needed(name, node[1]) or
+                _var_is_needed(name, node[2]))
+    elif ty == 'll_qual':
+        return (_var_is_needed(name, node[1]) or
+                any(_var_is_needed(name, sn) for sn in node[2]))
+    elif ty == 'll_arr':
+        return any(_var_is_needed(name, sn) for sn in node[1])
+    return False
 
 
 def rename(node, prefix):

@@ -36,6 +36,7 @@ class Compiler(object):
 
     def compile(self):
         ast = self.grammar.ast
+        ast = ir.add_builtin_vars(ast)
         ast = ir.regexpify(ast)
         ast = ir.flatten(ast, self._should_flatten)
         if self.memoize:
@@ -166,6 +167,10 @@ class Compiler(object):
         var = lit.encode(node[2])
         val = self._gen(node[1], True)
         return self._inv('_h_bind', as_callable, [val, ', ', var])
+
+    def _label_all_(self, node, as_callable):
+        rule = lit.encode(node[1])
+        return self._inv('_h_bind_all', as_callable, [rule, ', ', node[2]])
 
     def _lit_(self, node, as_callable):
         arg = lit.encode(node[1])
