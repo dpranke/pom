@@ -36,25 +36,32 @@ The code is only implemented in Python.
 Things that still need to be implemented
 ----------------------------------------
 
--   Support for inheritance and external rules.
--   Concrete syntax trees and preserving comments when pretty-printing
-    grammars (and more consistency for handling `->` for ASTs).
--   Left-recursion.
--   Operator precedence.
--   Whitespace-insensitive rules.
--   A different format for the grammars that is more JSON5-y.
--   Better error messages (and testing of them).
--   Specifying the ASTs (or walking the grammar) in a separate
-    definition block.
--   Managed state in the context (i.e., support for saving values safely
-    in the parse context).
--   Handling of indentation-sensitive grammars.
--   Templating (?).
--   Handling of large inputs and benchmarking.
--   LPEG-style bytecode?
--   Generators for languages other than Python.
--   Grep-like matching (i.e., LPEG-style pattern matching and
-    substitution) on the command-line and in APIs.
+-   Grammar features
+    -   Left-recursion.
+    -   Operator precedence.
+    -   Whitespace-insensitive rules.
+    -   Handling of indentation-sensitive grammars.
+    -   Support for inheritance and external rules.
+    -   Managed state in the context (i.e., support for saving values safely
+        in the parse context).
+-   Input formats
+    -   A different format for the grammars that is more JSON5-y.
+    -   Specifying the ASTs (aka "walkers" or "semantics (a la Ohm) in a
+        separate definition block.
+    -   Specifying multiple walkers.
+    -   Concrete syntax trees and preserving comments when pretty-printing
+        grammars (and more consistency for handling `->` for ASTs).
+-   General engineering
+    -   More error checking and handling.
+    -   Templating (?).
+    -   LPEG-style bytecode?
+    -   Generators for languages other than Python.
+    -   Implementations for languages other than Python.
+    -   Grep-like matching (i.e., LPEG-style pattern matching and
+        substitution) on the command-line and in APIs.
+    -   More testing.
+    -   Lots of performance tuning.
+    -   Documentation.
 
 Open issues
 -----------
