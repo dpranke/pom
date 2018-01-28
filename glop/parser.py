@@ -165,16 +165,29 @@ class Parser(object):
                      lambda: self._h_ch('=')])
 
     def _s_prim_expr_c3(self):
+        self._h_scope('prim_expr', [lambda: self._h_ch('('),
+                                    self._r_sp,
+                                    lambda: self._h_bind(self._r_choice, 'e'),
+                                    self._r_sp,
+                                    lambda: self._h_ch(')'),
+                                    lambda: self._h_succeed(['paren', self._h_get('e')])])
+
+    def _s_prim_expr_c4(self):
+        self._h_scope('prim_expr', [lambda: self._h_ch('~'),
+                                    lambda: self._h_bind(self._r_prim_expr, 'e'),
+                                    lambda: self._h_succeed(['not', self._h_get('e')])])
+
+    def _s_prim_expr_c5(self):
         self._h_scope('prim_expr', [lambda: self._h_str('->', 2),
                                     self._r_sp,
                                     lambda: self._h_bind(self._r_ll_expr, 'e'),
                                     lambda: self._h_succeed(['action', self._h_get('e')])])
 
-    def _s_prim_expr_c4(self):
+    def _s_prim_expr_c6(self):
         self._h_seq([lambda: self._h_str('{}', 2),
                      lambda: self._h_succeed(['pos'])])
 
-    def _s_prim_expr_c5(self):
+    def _s_prim_expr_c7(self):
         self._h_scope('prim_expr', [lambda: self._h_ch('{'),
                                     self._r_sp,
                                     lambda: self._h_bind(self._r_choice, 'e'),
@@ -182,26 +195,13 @@ class Parser(object):
                                     lambda: self._h_ch('}'),
                                     lambda: self._h_succeed(['capture', self._h_get('e')])])
 
-    def _s_prim_expr_c6(self):
+    def _s_prim_expr_c8(self):
         self._h_scope('prim_expr', [lambda: self._h_str('={', 2),
                                     self._r_sp,
                                     lambda: self._h_bind(self._r_ll_expr, 'e'),
                                     self._r_sp,
                                     lambda: self._h_ch('}'),
                                     lambda: self._h_succeed(['eq', self._h_get('e')])])
-
-    def _s_prim_expr_c7(self):
-        self._h_scope('prim_expr', [lambda: self._h_ch('~'),
-                                    lambda: self._h_bind(self._r_prim_expr, 'e'),
-                                    lambda: self._h_succeed(['not', self._h_get('e')])])
-
-    def _s_prim_expr_c8(self):
-        self._h_scope('prim_expr', [lambda: self._h_ch('('),
-                                    self._r_sp,
-                                    lambda: self._h_bind(self._r_choice, 'e'),
-                                    self._r_sp,
-                                    lambda: self._h_ch(')'),
-                                    lambda: self._h_succeed(['paren', self._h_get('e')])])
 
     def _s_prim_expr_c9(self):
         self._h_scope('prim_expr', [lambda: self._h_str('?{', 2),

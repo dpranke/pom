@@ -35,12 +35,12 @@ post_op     = '?'                                      -> 'opt'
 prim_expr   = lit:i sp '..' sp lit:j                   -> ['range', i, j]
             | lit:l                                    -> l
             | ident:i ~(sp '=')                        -> ['apply', i]
+            | '(' sp choice:e sp ')'                   -> ['paren', e]
+            | '~' prim_expr:e                          -> ['not', e]
             | '->' sp ll_expr:e                        -> ['action', e]
             | '{}'                                     -> ['pos']
             | '{' sp choice:e sp '}'                   -> ['capture', e]
             | '={' sp ll_expr:e sp '}'                 -> ['eq', e]
-            | '~' prim_expr:e                          -> ['not', e]
-            | '(' sp choice:e sp ')'                   -> ['paren', e]
             | '?{' sp ll_expr:e sp '}'                 -> ['pred', e]
 
 lit         = squote sqchar*:cs squote                 -> ['lit', cat(cs)]
