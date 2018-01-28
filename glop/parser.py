@@ -58,9 +58,11 @@ class Parser(object):
                                                     lambda: self._h_succeed(['rule', self._h_get('i'), self._h_get('cs')])]), '_r_rule')
 
     def _r_ident(self):
-        self._h_memo(lambda: self._h_scope('ident', [lambda: self._h_bind(self._r_id_start, 'hd'),
-                                                     lambda: self._h_bind(lambda: self._h_star(self._r_id_continue), 'tl'),
-                                                     lambda: self._h_succeed(self._f_cat([self._h_get('hd')] + self._h_get('tl')))]), '_r_ident')
+        self._h_memo(lambda: self._h_capture(self._s_ident_c), '_r_ident')
+
+    def _s_ident_c(self):
+        self._h_seq([self._r_id_start,
+                     lambda: self._h_star(self._r_id_continue)])
 
     def _r_id_start(self):
         self._h_memo(lambda: self._h_re('([a-z]|[A-Z]|_)'), '_r_id_start')
@@ -433,12 +435,12 @@ class Parser(object):
                                   lambda: self._h_succeed(['ll_var', self._h_get('i')])])
 
     def _s_ll_prim_c1(self):
-        self._h_scope('ll_prim', [lambda: self._h_bind(self._r_digits, 'ds'),
+        self._h_scope('ll_prim', [lambda: self._h_bind(lambda: self._h_capture(lambda: self._h_plus(self._r_digit)), 'ds'),
                                   lambda: self._h_succeed(['ll_num', self._h_get('ds')])])
 
     def _s_ll_prim_c2(self):
         self._h_scope('ll_prim', [lambda: self._h_str('0x', 2),
-                                  lambda: self._h_bind(self._r_hexdigits, 'hs'),
+                                  lambda: self._h_bind(lambda: self._h_capture(lambda: self._h_plus(self._r_hex)), 'hs'),
                                   lambda: self._h_succeed(['ll_num', '0x' + self._h_get('hs')])])
 
     def _s_ll_prim_c3(self):
@@ -460,14 +462,6 @@ class Parser(object):
                                   self._r_sp,
                                   lambda: self._h_ch(']'),
                                   lambda: self._h_succeed(['ll_arr', self._h_get('es')])])
-
-    def _r_digits(self):
-        self._h_memo(lambda: self._h_scope('digits', [lambda: self._h_bind(lambda: self._h_plus(self._r_digit), 'ds'),
-                                                      lambda: self._h_succeed(self._f_cat(self._h_get('ds')))]), '_r_digits')
-
-    def _r_hexdigits(self):
-        self._h_memo(lambda: self._h_scope('hexdigits', [lambda: self._h_bind(lambda: self._h_plus(self._r_hex), 'hs'),
-                                                         lambda: self._h_succeed(self._f_cat(self._h_get('hs')))]), '_r_hexdigits')
 
     def _r_hex(self):
         self._h_memo(lambda: self._h_re('[0-9a-fA-F]'), '_r_hex')
