@@ -180,11 +180,11 @@ class Parser(object):
                                     lambda: self._h_succeed(['not', self._h_get('e')])])
 
     def _s_prim_expr_c6(self):
-        self._h_scope('prim_expr', [lambda: self._h_str('?(', 2),
+        self._h_scope('prim_expr', [lambda: self._h_str('?{', 2),
                                     self._r_sp,
                                     lambda: self._h_bind(self._r_ll_expr, 'e'),
                                     self._r_sp,
-                                    lambda: self._h_ch(')'),
+                                    lambda: self._h_ch('}'),
                                     lambda: self._h_succeed(['pred', self._h_get('e')])])
 
     def _s_prim_expr_c7(self):

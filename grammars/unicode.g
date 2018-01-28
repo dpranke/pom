@@ -4,48 +4,48 @@
 // http://www.unicode.org/Public/9.0.0/ucd/PropertyValueAliases.txt).
 
 C                     = Cc | Cf | Cn | Co | Cs
-Cc                    = anything:x ?(is_unicat(x, 'Cc')) -> x
-Cf                    = anything:x ?(is_unicat(x, 'Cf')) -> x
-Cn                    = anything:x ?(is_unicat(x, 'Cn')) -> x
-Co                    = anything:x ?(is_unicat(x, 'Co')) -> x
-Cs                    = anything:x ?(is_unicat(x, 'Cs')) -> x
+Cc                    = anything:x ?{is_unicat(x, 'Cc')} -> x
+Cf                    = anything:x ?{is_unicat(x, 'Cf')} -> x
+Cn                    = anything:x ?{is_unicat(x, 'Cn')} -> x
+Co                    = anything:x ?{is_unicat(x, 'Co')} -> x
+Cs                    = anything:x ?{is_unicat(x, 'Cs')} -> x
 
 L                     = Ll | Lm | Lo | Lt | Lu
-Ll                    = anything:x ?(is_unicat(x, 'Ll')) -> x
-Lm                    = anything:x ?(is_unicat(x, 'Lm')) -> x
-Lo                    = anything:x ?(is_unicat(x, 'Lo')) -> x
-Lt                    = anything:x ?(is_unicat(x, 'Lt')) -> x
-Lu                    = anything:x ?(is_unicat(x, 'Lu')) -> x
+Ll                    = anything:x ?{is_unicat(x, 'Ll')} -> x
+Lm                    = anything:x ?{is_unicat(x, 'Lm')} -> x
+Lo                    = anything:x ?{is_unicat(x, 'Lo')} -> x
+Lt                    = anything:x ?{is_unicat(x, 'Lt')} -> x
+Lu                    = anything:x ?{is_unicat(x, 'Lu')} -> x
 
 M                     = Mc | Me | Mn
-Mc                    = anything:x ?(is_unicat(x, 'Mc')) -> x
-Me                    = anything:x ?(is_unicat(x, 'Me')) -> x
-Mn                    = anything:x ?(is_unicat(x, 'Mn')) -> x
+Mc                    = anything:x ?{is_unicat(x, 'Mc')} -> x
+Me                    = anything:x ?{is_unicat(x, 'Me')} -> x
+Mn                    = anything:x ?{is_unicat(x, 'Mn')) -> x
 
 N                     = Nd | Nl | No
-Nd                    = anything:x ?(is_unicat(x, 'Nd')) -> x
-Nl                    = anything:x ?(is_unicat(x, 'Nl')) -> x
-No                    = anything:x ?(is_unicat(x, 'No')) -> x
+Nd                    = anything:x ?{is_unicat(x, 'Nd')} -> x
+Nl                    = anything:x ?{is_unicat(x, 'Nl')} -> x
+No                    = anything:x ?{is_unicat(x, 'No')} -> x
 
 P                     = Pc | Pd | Pe | Pf | Pi | Po | Ps
-Pc                    = anything:x ?(is_unicat(x, 'Pc')) -> x
-Pd                    = anything:x ?(is_unicat(x, 'Pd')) -> x
-Pe                    = anything:x ?(is_unicat(x, 'Pe')) -> x
-Pf                    = anything:x ?(is_unicat(x, 'Pf')) -> x
-Pi                    = anything:x ?(is_unicat(x, 'Pi')) -> x
-Po                    = anything:x ?(is_unicat(x, 'Po')) -> x
-Ps                    = anything:x ?(is_unicat(x, 'Ps')) -> x
+Pc                    = anything:x ?{is_unicat(x, 'Pc')} -> x
+Pd                    = anything:x ?{is_unicat(x, 'Pd')} -> x
+Pe                    = anything:x ?{is_unicat(x, 'Pe')} -> x
+Pf                    = anything:x ?{is_unicat(x, 'Pf')} -> x
+Pi                    = anything:x ?{is_unicat(x, 'Pi')} -> x
+Po                    = anything:x ?{is_unicat(x, 'Po')} -> x
+Ps                    = anything:x ?{is_unicat(x, 'Ps')} -> x
 
 S                     = Sc | Sk | Sm | So
-Sc                    = anything:x ?(is_unicat(x, 'Sc')) -> x
-Sm                    = anything:x ?(is_unicat(x, 'Sm')) -> x
-Sk                    = anything:x ?(is_unicat(x, 'Sk')) -> x
-So                    = anything:x ?(is_unicat(x, 'So')) -> x
+Sc                    = anything:x ?{is_unicat(x, 'Sc')} -> x
+Sm                    = anything:x ?{is_unicat(x, 'Sm')} -> x
+Sk                    = anything:x ?{is_unicat(x, 'Sk')} -> x
+So                    = anything:x ?{is_unicat(x, 'So')) -> x
 
 Z                     = Zl | Zp | Zs
-Zl                    = anything:x ?(is_unicat(x, 'Zl')) -> x
-Zp                    = anything:x ?(is_unicat(x, 'Zp')) -> x
-Zs                    = anything:x ?(is_unicat(x, 'Zs')) -> x
+Zl                    = anything:x ?{is_unicat(x, 'Zl')} -> x
+Zp                    = anything:x ?{is_unicat(x, 'Zp')} -> x
+Zs                    = anything:x ?{is_unicat(x, 'Zs')} -> x
 
 // These are the readable aliases for the above categories, given in
 // http://www.unicode.org/Public/9.0.0/ucd/PropertyValueAliases.txt

@@ -38,7 +38,7 @@ prim_expr   = lit:i sp '..' sp lit:j              -> ['range', i, j]
             | '->' sp ll_expr:e                   -> ['action', e]
             | '{' sp choice:e sp '}'              -> ['capture', e]
             | '~' prim_expr:e                     -> ['not', e]
-            | '?(' sp ll_expr:e sp ')'            -> ['pred', e]
+            | '?{' sp ll_expr:e sp '}'            -> ['pred', e]
             | '(' sp choice:e sp ')'              -> ['paren', e]
 
 lit         = squote sqchar*:cs squote            -> ['lit', cat(cs)]

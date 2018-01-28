@@ -1,1 +1,2 @@
-grammar = ?( 1 ) '\n' end -> 'ok'
+grammar = ?{ false }
+        | -> 'ok\n'

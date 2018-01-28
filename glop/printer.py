@@ -132,7 +132,7 @@ class Printer(object):
         return '%s+' % self._proc(node[1])
 
     def _pred_(self, node):
-        return '?(%s)' % self._proc(node[1])
+        return '?{%s}' % self._proc(node[1])
 
     def _range_(self, node):
         return '%s..%s' % (self._proc(node[1]), self._proc(node[2]))
