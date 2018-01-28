@@ -38,7 +38,7 @@ Things that still need to be implemented:
 
 -   Grammar features:
     -   Left-recursion.
-    -   Operator precedence.
+    -   Operator precedence and associativity.
     -   Whitespace-insensitive rules.
     -   Handling of indentation-sensitive grammars.
     -   Support for inheritance and external rules.
