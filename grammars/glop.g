@@ -6,7 +6,7 @@ ws          = '\x20' | '\x09' | eol | comment
 
 eol         = '\x0D\x0A' | '\x0D' | '\x0A'
 
-comment     = '//' (~eol anything)* 
+comment     = '//' (~eol anything)*
             | '/*' (~'*/' anything)* '*/'
 
 rule        = ident:i sp '=' sp choice:cs sp ','? -> ['rule', i, cs]
@@ -36,6 +36,7 @@ prim_expr   = lit:i sp '..' sp lit:j              -> ['range', i, j]
             | lit:l                               -> l
             | ident:i ~(sp '=')                   -> ['apply', i]
             | '->' sp ll_expr:e                   -> ['action', e]
+            | '{' sp choice:e sp '}'              -> ['capture', e]
             | '~' prim_expr:e                     -> ['not', e]
             | '?(' sp ll_expr:e sp ')'            -> ['pred', e]
             | '(' sp choice:e sp ')'              -> ['paren', e]

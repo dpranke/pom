@@ -83,6 +83,14 @@ defs = {
                            '    rule()',
                            '    if not self.failed:',
                            '        self._h_set(var, self.val)']},
+        '_h_capture': {
+            'lines': ['v', 'def _h_capture(self, rule):',
+                           '    start = self.pos',
+                           '    rule()',
+                           '    if not self.failed:',
+                           '        self._h_succeed(self.msg[start:self.pos],'
+                           '                        self.pos)']},
+
         '_h_ch': {
             'needs': ['_h_succeed', '_h_fail'], 
             'lines': ['v', 'def _h_ch(self, ch):',

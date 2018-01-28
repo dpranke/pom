@@ -30,7 +30,7 @@ class Parser(object):
 
     def _r_grammar(self):
         self._h_memo(lambda: self._h_scope('grammar', [lambda: self._h_bind(lambda: self._h_star(self._s_grammar_s0_l_s), 'vs'),
-                                                       lambda: self._h_re('(( |\t|(\r\n|\r|\n)|(//((?!(\r\n|\r|\n)).)*|/\\*((?!\\*/).)*\\*/)))*'),
+                                                       lambda: self._h_re('( |\t|(\r\n|\r|\n)|(//(?!(\r\n|\r|\n)).*|/\\*(?!\\*/).*\\*/))*'),
                                                        self._r_end,
                                                        lambda: self._h_succeed(['rules', self._h_get('vs')])]), '_r_grammar')
 
@@ -39,22 +39,22 @@ class Parser(object):
                      self._r_rule])
 
     def _r_sp(self):
-        self._h_memo(lambda: self._h_re('(( |\t|(\r\n|\r|\n)|(//((?!(\r\n|\r|\n)).)*|/\\*((?!\\*/).)*\\*/)))*'), '_r_sp')
+        self._h_memo(lambda: self._h_re('( |\t|(\r\n|\r|\n)|(//(?!(\r\n|\r|\n)).*|/\\*(?!\\*/).*\\*/))*'), '_r_sp')
 
     def _r_ws(self):
-        self._h_memo(lambda: self._h_re('( |\t|(\r\n|\r|\n)|(//((?!(\r\n|\r|\n)).)*|/\\*((?!\\*/).)*\\*/))'), '_r_ws')
+        self._h_memo(lambda: self._h_re('( |\t|(\r\n|\r|\n)|(//(?!(\r\n|\r|\n)).*|/\\*(?!\\*/).*\\*/))'), '_r_ws')
 
     def _r_eol(self):
         self._h_memo(lambda: self._h_re('(\r\n|\r|\n)'), '_r_eol')
 
     def _r_comment(self):
-        self._h_memo(lambda: self._h_re('(//((?!(\r\n|\r|\n)).)*|/\\*((?!\\*/).)*\\*/)'), '_r_comment')
+        self._h_memo(lambda: self._h_re('(//(?!(\r\n|\r|\n)).*|/\\*(?!\\*/).*\\*/)'), '_r_comment')
 
     def _r_rule(self):
         self._h_memo(lambda: self._h_scope('rule', [lambda: self._h_bind(self._r_ident, 'i'),
-                                                    lambda: self._h_re('(( |\t|(\r\n|\r|\n)|(//((?!(\r\n|\r|\n)).)*|/\\*((?!\\*/).)*\\*/)))*=(( |\t|(\r\n|\r|\n)|(//((?!(\r\n|\r|\n)).)*|/\\*((?!\\*/).)*\\*/)))*'),
+                                                    lambda: self._h_re('( |\t|(\r\n|\r|\n)|(//(?!(\r\n|\r|\n)).*|/\\*(?!\\*/).*\\*/))*=( |\t|(\r\n|\r|\n)|(//(?!(\r\n|\r|\n)).*|/\\*(?!\\*/).*\\*/))*'),
                                                     lambda: self._h_bind(self._r_choice, 'cs'),
-                                                    lambda: self._h_re('(( |\t|(\r\n|\r|\n)|(//((?!(\r\n|\r|\n)).)*|/\\*((?!\\*/).)*\\*/)))*(,)?'),
+                                                    lambda: self._h_re('( |\t|(\r\n|\r|\n)|(//(?!(\r\n|\r|\n)).*|/\\*(?!\\*/).*\\*/))*,?'),
                                                     lambda: self._h_succeed(['rule', self._h_get('i'), self._h_get('cs')])]), '_r_rule')
 
     def _r_ident(self):
@@ -136,7 +136,8 @@ class Parser(object):
                                              self._s_prim_expr_c3,
                                              self._s_prim_expr_c4,
                                              self._s_prim_expr_c5,
-                                             self._s_prim_expr_c6]), '_r_prim_expr')
+                                             self._s_prim_expr_c6,
+                                             self._s_prim_expr_c7]), '_r_prim_expr')
 
     def _s_prim_expr_c0(self):
         self._h_scope('prim_expr', [lambda: self._h_bind(self._r_lit, 'i'),
@@ -166,11 +167,19 @@ class Parser(object):
                                     lambda: self._h_succeed(['action', self._h_get('e')])])
 
     def _s_prim_expr_c4(self):
+        self._h_scope('prim_expr', [lambda: self._h_ch('{'),
+                                    self._r_sp,
+                                    lambda: self._h_bind(self._r_choice, 'e'),
+                                    self._r_sp,
+                                    lambda: self._h_ch('}'),
+                                    lambda: self._h_succeed(['capture', self._h_get('e')])])
+
+    def _s_prim_expr_c5(self):
         self._h_scope('prim_expr', [lambda: self._h_ch('~'),
                                     lambda: self._h_bind(self._r_prim_expr, 'e'),
                                     lambda: self._h_succeed(['not', self._h_get('e')])])
 
-    def _s_prim_expr_c5(self):
+    def _s_prim_expr_c6(self):
         self._h_scope('prim_expr', [lambda: self._h_str('?(', 2),
                                     self._r_sp,
                                     lambda: self._h_bind(self._r_ll_expr, 'e'),
@@ -178,7 +187,7 @@ class Parser(object):
                                     lambda: self._h_ch(')'),
                                     lambda: self._h_succeed(['pred', self._h_get('e')])])
 
-    def _s_prim_expr_c6(self):
+    def _s_prim_expr_c7(self):
         self._h_scope('prim_expr', [lambda: self._h_ch('('),
                                     self._r_sp,
                                     lambda: self._h_bind(self._r_choice, 'e'),
@@ -438,7 +447,7 @@ class Parser(object):
                                                          lambda: self._h_succeed(self._f_cat(self._h_get('hs')))]), '_r_hexdigits')
 
     def _r_hex(self):
-        self._h_memo(lambda: self._h_re('([0-9]|[a-f]|[A-F])'), '_r_hex')
+        self._h_memo(lambda: self._h_re('[0-9a-fA-F]'), '_r_hex')
 
     def _r_digit(self):
         self._h_memo(lambda: self._h_range('0', '9'), '_r_digit')
@@ -494,7 +503,9 @@ class Parser(object):
         if self.errpos == len(self.msg):
             thing = 'end of input'
         else:
-            thing = '"%s"' % self.msg[self.errpos]
+            thing = repr(self.msg[self.errpos])
+            if thing[0] == 'u':
+                thing = thing[1:]
         err_str = '%s:%d Unexpected %s at column %d' % (self.fname, lineno,
                                                         thing, colno)
         return None, err_str, self.errpos

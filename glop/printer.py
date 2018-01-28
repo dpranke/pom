@@ -75,6 +75,9 @@ class Printer(object):
     def _apply_(self, node):
         return node[1]
 
+    def _capture_(self, node):
+        return '{%s}' % self._proc(e)
+
     def _choice_(self, node):
         return ' | '.join(self._proc(e) for e in node[1])
 

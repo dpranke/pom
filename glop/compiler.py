@@ -145,6 +145,10 @@ class Compiler(object):
         else:
             return 'self.%s()' % rule_name
 
+    def _capture_(self, node, as_callable):
+        val = self._gen(node[1], True)
+        return self._inv('_h_capture', as_callable, [val])
+
     def _choice_(self, node, as_callable):
         return self._inv('_h_choose', as_callable, [self._args(node[1])])
 

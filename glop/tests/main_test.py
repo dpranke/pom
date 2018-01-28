@@ -232,6 +232,10 @@ class TestInterpreter(UnitTestMixin, CheckMixin, unittest.TestCase):
         self.check_match("grammar = 'a'? end ,", 'a')
         self.check_match("grammar = 'a'? end ,", 'aa', returncode=1)
 
+    def test_capture(self):
+        self.check_match("grammar = 'a' {'b'+}:bs 'c' -> bs", 'abbc',
+                         out='bb')
+
     def test_choice(self):
         self.check_match("grammar = 'foo' | 'bar',", 'foo',
                          0, 'foo', '')
