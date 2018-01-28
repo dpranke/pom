@@ -89,7 +89,7 @@ defs = {
                            '    start = self.pos',
                            '    rule()',
                            '    if not self.failed:',
-                           '        self._h_succeed(self.msg[start:self.pos],'
+                           '        self._h_succeed(self.msg[start:self.pos],',
                            '                        self.pos)']},
 
         '_h_ch': {

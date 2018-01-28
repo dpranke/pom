@@ -194,20 +194,20 @@ class Parser(object):
                                     lambda: self._h_succeed(['not', self._h_get('e')])])
 
     def _s_prim_expr_c8(self):
-        self._h_scope('prim_expr', [lambda: self._h_str('?{', 2),
-                                    self._r_sp,
-                                    lambda: self._h_bind(self._r_ll_expr, 'e'),
-                                    self._r_sp,
-                                    lambda: self._h_ch('}'),
-                                    lambda: self._h_succeed(['pred', self._h_get('e')])])
-
-    def _s_prim_expr_c9(self):
         self._h_scope('prim_expr', [lambda: self._h_ch('('),
                                     self._r_sp,
                                     lambda: self._h_bind(self._r_choice, 'e'),
                                     self._r_sp,
                                     lambda: self._h_ch(')'),
                                     lambda: self._h_succeed(['paren', self._h_get('e')])])
+
+    def _s_prim_expr_c9(self):
+        self._h_scope('prim_expr', [lambda: self._h_str('?{', 2),
+                                    self._r_sp,
+                                    lambda: self._h_bind(self._r_ll_expr, 'e'),
+                                    self._r_sp,
+                                    lambda: self._h_ch('}'),
+                                    lambda: self._h_succeed(['pred', self._h_get('e')])])
 
     def _r_lit(self):
         self._h_memo(lambda: self._h_choose([self._s_lit_c0,
@@ -321,9 +321,12 @@ class Parser(object):
 
     def _r_hex_esc(self):
         self._h_memo(lambda: self._h_scope('hex_esc', [lambda: self._h_re('x'),
-                                                       lambda: self._h_bind(self._r_hex, 'h1'),
-                                                       lambda: self._h_bind(self._r_hex, 'h2'),
-                                                       lambda: self._h_succeed(self._f_xtou(self._h_get('h1') + self._h_get('h2')))]), '_r_hex_esc')
+                                                       lambda: self._h_bind(lambda: self._h_capture(self._s_hex_esc_s1_l_c), 'hs'),
+                                                       lambda: self._h_succeed(self._f_xtou(self._h_get('hs')))]), '_r_hex_esc')
+
+    def _s_hex_esc_s1_l_c(self):
+        self._h_seq([self._r_hex,
+                     self._r_hex])
 
     def _r_unicode_esc(self):
         self._h_memo(lambda: self._h_choose([self._s_unicode_esc_c0,
@@ -331,23 +334,29 @@ class Parser(object):
 
     def _s_unicode_esc_c0(self):
         self._h_scope('unicode_esc', [lambda: self._h_ch('u'),
-                                      lambda: self._h_bind(self._r_hex, 'h1'),
-                                      lambda: self._h_bind(self._r_hex, 'h2'),
-                                      lambda: self._h_bind(self._r_hex, 'h3'),
-                                      lambda: self._h_bind(self._r_hex, 'h4'),
-                                      lambda: self._h_succeed(self._f_xtou(self._h_get('h1') + self._h_get('h2') + self._h_get('h3') + self._h_get('h4')))])
+                                      lambda: self._h_bind(lambda: self._h_capture(self._s_unicode_esc_c0_s1_l_c), 'hs'),
+                                      lambda: self._h_succeed(self._f_xtou(self._h_get('hs')))])
+
+    def _s_unicode_esc_c0_s1_l_c(self):
+        self._h_seq([self._r_hex,
+                     self._r_hex,
+                     self._r_hex,
+                     self._r_hex])
 
     def _s_unicode_esc_c1(self):
         self._h_scope('unicode_esc', [lambda: self._h_ch('U'),
-                                      lambda: self._h_bind(self._r_hex, 'h1'),
-                                      lambda: self._h_bind(self._r_hex, 'h2'),
-                                      lambda: self._h_bind(self._r_hex, 'h3'),
-                                      lambda: self._h_bind(self._r_hex, 'h4'),
-                                      lambda: self._h_bind(self._r_hex, 'h5'),
-                                      lambda: self._h_bind(self._r_hex, 'h6'),
-                                      lambda: self._h_bind(self._r_hex, 'h7'),
-                                      lambda: self._h_bind(self._r_hex, 'h8'),
-                                      lambda: self._h_succeed(self._f_xtou(self._h_get('h1') + self._h_get('h2') + self._h_get('h3') + self._h_get('h4') + self._h_get('h5') + self._h_get('h6') + self._h_get('h7') + self._h_get('h8')))])
+                                      lambda: self._h_bind(lambda: self._h_capture(self._s_unicode_esc_c1_s1_l_c), 'hs'),
+                                      lambda: self._h_succeed(self._f_xtou(self._h_get('hs')))])
+
+    def _s_unicode_esc_c1_s1_l_c(self):
+        self._h_seq([self._r_hex,
+                     self._r_hex,
+                     self._r_hex,
+                     self._r_hex,
+                     self._r_hex,
+                     self._r_hex,
+                     self._r_hex,
+                     self._r_hex])
 
     def _r_ll_exprs(self):
         self._h_memo(lambda: self._h_choose([self._s_ll_exprs_c0,
@@ -488,6 +497,13 @@ class Parser(object):
         rule()
         if not self.failed:
             self._h_set(var, self.val)
+
+    def _h_capture(self, rule):
+        start = self.pos
+        rule()
+        if not self.failed:
+            self._h_succeed(self.msg[start:self.pos],
+                            self.pos)
 
     def _h_ch(self, ch):
         p = self.pos
