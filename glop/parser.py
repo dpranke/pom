@@ -138,7 +138,8 @@ class Parser(object):
                                              self._s_prim_expr_c5,
                                              self._s_prim_expr_c6,
                                              self._s_prim_expr_c7,
-                                             self._s_prim_expr_c8]), '_r_prim_expr')
+                                             self._s_prim_expr_c8,
+                                             self._s_prim_expr_c9]), '_r_prim_expr')
 
     def _s_prim_expr_c0(self):
         self._h_scope('prim_expr', [lambda: self._h_bind(self._r_lit, 'i'),
@@ -180,11 +181,19 @@ class Parser(object):
                                     lambda: self._h_succeed(['capture', self._h_get('e')])])
 
     def _s_prim_expr_c6(self):
+        self._h_scope('prim_expr', [lambda: self._h_str('={', 2),
+                                    self._r_sp,
+                                    lambda: self._h_bind(self._r_ll_expr, 'e'),
+                                    self._r_sp,
+                                    lambda: self._h_ch('}'),
+                                    lambda: self._h_succeed(['eq', self._h_get('e')])])
+
+    def _s_prim_expr_c7(self):
         self._h_scope('prim_expr', [lambda: self._h_ch('~'),
                                     lambda: self._h_bind(self._r_prim_expr, 'e'),
                                     lambda: self._h_succeed(['not', self._h_get('e')])])
 
-    def _s_prim_expr_c7(self):
+    def _s_prim_expr_c8(self):
         self._h_scope('prim_expr', [lambda: self._h_str('?{', 2),
                                     self._r_sp,
                                     lambda: self._h_bind(self._r_ll_expr, 'e'),
@@ -192,7 +201,7 @@ class Parser(object):
                                     lambda: self._h_ch('}'),
                                     lambda: self._h_succeed(['pred', self._h_get('e')])])
 
-    def _s_prim_expr_c8(self):
+    def _s_prim_expr_c9(self):
         self._h_scope('prim_expr', [lambda: self._h_ch('('),
                                     self._r_sp,
                                     lambda: self._h_bind(self._r_choice, 'e'),

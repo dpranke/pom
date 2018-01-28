@@ -158,6 +158,10 @@ class Compiler(object):
         else:
             return ''
 
+    def _eq_(self, node, as_callable):
+        val = self._gen(node[1], as_callable)
+        return self._inv('_h_eq', as_callable, [val])
+        
     def _label_(self, node, as_callable):
         var = lit.encode(node[2])
         val = self._gen(node[1], True)

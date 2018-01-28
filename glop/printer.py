@@ -84,6 +84,9 @@ class Printer(object):
     def _empty_(self, node):
         return ''
 
+    def _eq_(self, node):
+        return '?{%s}' % self._proc(node[1])
+
     def _label_(self, node):
         return '%s:%s' % (self._proc(node[1]), node[2])
 

@@ -110,6 +110,10 @@ defs = {
                            '            return',
                            '        self._h_rewind(p)',
                            '    rules[-1]()']},
+        '_h_eq': {
+            'needs': ['_h_get', '_h_str'],
+            'lines': ['v', 'def _h_eq(self, var):',
+                           '    self._h_str(var, len(var))']}, 
         '_h_err': {
             'lines': ['v', 'def _h_err(self):',
                            '    lineno = 1',

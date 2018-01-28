@@ -217,6 +217,10 @@ class TestInterpreter(UnitTestMixin, CheckMixin, unittest.TestCase):
     def test_no_match(self):
         self.check_match("grammar = 'foo' | 'bar',", 'baz', returncode=1)
 
+    def test_eq(self):
+        self.check_match("grammar = 'abc':v ={v} end", 'abcabc')
+        self.check_match("grammar = 'abc':v ={v} end", 'abccba', returncode=1)
+
     def test_star(self):
         self.check_match("grammar = 'a'* end", '')
         self.check_match("grammar = 'a'* end", 'a')
