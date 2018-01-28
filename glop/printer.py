@@ -99,16 +99,16 @@ class Printer(object):
     def _ll_call_(self, node):
         return '(%s)' % ', '.join(self._proc(arg) for arg in node[1])
 
+    def _ll_dec_(self, node):
+        return str(node[1])
+
     def _ll_getattr_(self, node):
         return '.%s' % node[1]
 
     def _ll_getitem_(self, node):
         return '[%s]' % self._proc(node[1])
 
-    def _ll_lit_(self, node):
-        return self._lit_(node)
-
-    def _ll_num_(self, node):
+    def _ll_hex_(self, node):
         return str(node[1])
 
     def _ll_plus_(self, node):
@@ -118,6 +118,9 @@ class Printer(object):
         _, e, ops = node
         v = self._proc(e)
         return '%s%s' % (v, ''.join(self._proc(op) for op in ops))
+
+    def _ll_str_(self, node):
+        return lit.encode(node[1])
 
     def _ll_var_(self, node):
         return node[1]

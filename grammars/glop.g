@@ -89,9 +89,9 @@ ll_post_op  = '[' sp ll_expr:e sp ']'                  -> ['ll_getitem', e]
             | '.' ident:i                              -> ['ll_getattr', i]
 
 ll_prim     = ident:i                                  -> ['ll_var', i]
-            | {digit+}:ds                              -> ['ll_num', ds]
-            | '0x' {hex+}:hs                           -> ['ll_num', '0x' + hs]
-            | lit:l                                    -> ['ll_lit', l[1]]
+            | {digit+}:ds                              -> ['ll_dec', ds]
+            | '0x' {hex+}:hs                           -> ['ll_hex', hs]
+            | lit:l                                    -> ['ll_str', l[1]]
             | '(' sp ll_expr:e sp ')'                  -> ['ll_paren', e]
             | '[' sp ll_exprs:es sp ']'                -> ['ll_arr', es]
 

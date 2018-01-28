@@ -436,16 +436,16 @@ class Parser(object):
 
     def _s_ll_prim_c1(self):
         self._h_scope('ll_prim', [lambda: self._h_bind(lambda: self._h_capture(lambda: self._h_plus(self._r_digit)), 'ds'),
-                                  lambda: self._h_succeed(['ll_num', self._h_get('ds')])])
+                                  lambda: self._h_succeed(['ll_dec', self._h_get('ds')])])
 
     def _s_ll_prim_c2(self):
         self._h_scope('ll_prim', [lambda: self._h_str('0x', 2),
                                   lambda: self._h_bind(lambda: self._h_capture(lambda: self._h_plus(self._r_hex)), 'hs'),
-                                  lambda: self._h_succeed(['ll_num', '0x' + self._h_get('hs')])])
+                                  lambda: self._h_succeed(['ll_hex', self._h_get('hs')])])
 
     def _s_ll_prim_c3(self):
         self._h_scope('ll_prim', [lambda: self._h_bind(self._r_lit, 'l'),
-                                  lambda: self._h_succeed(['ll_lit', self._h_get('l')[1]])])
+                                  lambda: self._h_succeed(['ll_str', self._h_get('l')[1]])])
 
     def _s_ll_prim_c4(self):
         self._h_scope('ll_prim', [lambda: self._h_ch('('),

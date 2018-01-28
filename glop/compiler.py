@@ -190,17 +190,17 @@ class Compiler(object):
         args = [str(self._gen(e, True)) for e in node[1]]
         return '(' + ', '.join(args) + ')'
 
+    def _ll_dec_(self, node, _as_callable):
+        return node[1]
+
     def _ll_getattr_(self, node, _as_callable):
         return '.' + node[1]
 
     def _ll_getitem_(self, node, _as_callable):
         return '[' + str(self._gen(node[1], True)) + ']'
 
-    def _ll_lit_(self, node, _as_callable):
-        return lit.encode(node[1])
-
-    def _ll_num_(self, node, _as_callable):
-        return node[1]
+    def _ll_hex_(self, node, _as_callable):
+        return '0x' + node[1]
 
     def _ll_plus_(self, node, _as_callable):
         return '%s + %s' % (self._gen(node[1], True), self._gen(node[2], True))
@@ -210,6 +210,9 @@ class Compiler(object):
         for p in node[2]:
             v += self._gen(p, True)
         return v
+
+    def _ll_str_(self, node, _as_callable):
+        return lit.encode(node[1])
 
     def _ll_var_(self, node, _as_callable):
         name = node[1]
