@@ -131,6 +131,9 @@ class Printer(object):
     def _plus_(self, node):
         return '%s+' % self._proc(node[1])
 
+    def _pos_(self, node):
+        return '{}'
+
     def _pred_(self, node):
         return '?{%s}' % self._proc(node[1])
 

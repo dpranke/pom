@@ -84,6 +84,7 @@ defs = {
                            '    if not self.failed:',
                            '        self._h_set(var, self.val)']},
         '_h_capture': {
+            'needs': ['_h_succeed'],
             'lines': ['v', 'def _h_capture(self, rule):',
                            '    start = self.pos',
                            '    rule()',
@@ -182,6 +183,10 @@ defs = {
                            '        else:',
                            '            vs.append(self.val)',
                            '    self._h_succeed(vs)']},
+        '_h_pos': {
+            'needs': ['_h_succeed'],
+            'lines': ['v', 'def _h_pos(self):',
+                           '    self._h_succeed(self.pos)']},
         '_h_range': {
             'needs': ['_h_fail', '_h_succeed'],
             'lines': ['v', 'def _h_range(self, i, j):',

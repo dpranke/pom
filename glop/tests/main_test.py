@@ -227,6 +227,9 @@ class TestInterpreter(UnitTestMixin, CheckMixin, unittest.TestCase):
         self.check_match("grammar = 'a'+ end", 'a')
         self.check_match("grammar = 'a'+ end", 'aa')
 
+    def test_pos(self):
+        self.check_match("grammar = 'a' {}:p 'b\n' end -> p", 'ab\n', out='1')
+
     def test_opt(self):
         self.check_match("grammar = 'a'? end ,", '')
         self.check_match("grammar = 'a'? end ,", 'a')

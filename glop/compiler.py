@@ -238,6 +238,9 @@ class Compiler(object):
         val = self._gen(node[1], True)
         return self._inv('_h_plus', as_callable, [val])
 
+    def _pos_(self, node, as_callable):
+        return self._inv('_h_pos', as_callable, [])
+
     def _pred_(self, node, as_callable):
         self._need('_h_succeed')
         self._need('_h_fail')
