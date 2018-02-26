@@ -24,7 +24,7 @@ if not d in sys.path:
 # We use absolute paths rather than relative paths because this file can be
 # invoked directly as a script (and isn't considered part of a module in
 # that case).
-from glop.ir import Grammar
+from glop.ir import Grammar, check_for_left_recursion
 from glop.compiler import Compiler
 from glop.printer import Printer
 from glop.host import Host
@@ -51,6 +51,13 @@ def main(host=None, argv=None):
             contents = json.dumps(grammar.ast, indent=2) + '\n'
             _write(host, args.output, contents)
             return 0
+
+        lr_rules = check_for_left_recursion(grammar)
+        if lr_rules:
+            for rule in lr_rules:
+                host.print_('Rule `%s` is left-recursive.' % rule,
+                            stream=host.stderr)
+            return 1
 
         if args.compile:
             comp = Compiler(grammar, args.class_name, args.main, args.memoize)

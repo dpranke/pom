@@ -221,6 +221,13 @@ class TestInterpreter(UnitTestMixin, CheckMixin, unittest.TestCase):
         self.check_match("grammar = 'abc':v ={v} end", 'abcabc')
         self.check_match("grammar = 'abc':v ={v} end", 'abccba', returncode=1)
 
+    def test_left_recursion(self):
+        direct = """\
+            expr = expr '+' expr
+                 | ('0'..'9')+
+            """
+        self.check_match(direct, '12 + 3', returncode=1)
+
     def test_star(self):
         self.check_match("grammar = 'a'* end", '')
         self.check_match("grammar = 'a'* end", 'a')

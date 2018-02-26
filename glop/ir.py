@@ -22,6 +22,76 @@ class Grammar(object):
         self.starting_rule = self.rules[0][1]
 
 
+def check_for_left_recursion(grammar):
+    """Returns a list of all potentially left-recursive rules."""
+    lr_rules = set()
+    rules = {}
+    for _, name, body in grammar.rules:
+        rules[name] = body
+    for _, name, body in grammar.rules:
+        has_lr = _check_lr(name, body, rules)
+        if has_lr:
+            lr_rules.add(name)
+    return lr_rules
+
+def _check_lr(name, node, rules):
+    ty = node[0]
+    if ty == 'action':
+        return None
+    if ty == 'apply':
+        if node[1] == name:
+            return True  # Direct recursion.
+        if node[1] in ('anything', 'end'):
+            return False
+        return _check_lr(name, rules[node[1]], rules)
+    if ty == 'capture':
+        return _check_lr(name, node[1], rules)
+    if ty == 'choice':
+        return any(_check_lr(name, n, rules) for n in node[1])
+    if ty == 'empty':
+        return None
+    if ty == 'eq':
+        # eq matches a prior node, and if that prior node had recursed,
+        # we would've stopped already, so this can't recurse either.
+        return None
+    if ty == 'label':
+        return _check_lr(name, node[1], rules)
+    if ty == 'lit':
+        return False
+    if ty == 'not':
+        return _check_lr(name, node[1], rules)
+    if ty == 'opt':
+        return _check_lr(name, node[1], rules)
+    if ty == 'paren':
+        return _check_lr(name, node[1], rules)
+    if ty == 'plus':
+        return _check_lr(name, node[1], rules)
+    if ty == 'pos':
+        return None
+    if ty == 'pred':
+        return None
+    if ty == 'rule':
+        assert False, 'unexpected `rule` node'
+    if ty == 'rules':
+        assert False, 'unexpected `rules` node'
+    if ty == 'scope':
+        for subnode in node[1]:
+            r = _check_lr(name, subnode, rules)
+            if r is not None:
+                return r
+        return False
+    if ty == 'seq':
+        for subnode in node[1]:
+            r = _check_lr(name, subnode, rules)
+            if r is not None:
+                return r
+        return False
+    if ty == 'star':
+        return _check_lr(name, node[1], rules)
+
+    assert False, 'unexpected AST node type %s' % ty
+
+
 def memoize(ast, rules_to_memoize):
     """Returns a new AST with the given rules memoized."""
     new_rules = []
@@ -236,6 +306,7 @@ def _flatten(old_name, old_node, should_flatten):
 
 
 def regexpify(old_node, rules=None, force=False, rules_to_re=None):
+    """Converts rules to regexps where possible."""
     if rules is None:
         rules = {}
         for _, name, val in old_node[1]:
