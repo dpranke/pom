@@ -68,6 +68,7 @@ class Compiler(object):
 
         scopes_wanted = ('_h_set' in self._needed and
                          '_h_scope' in self._needed)
+        seeds_wanted = ('_h_leftrec' in self._needed)
         args = {
           'classname': self.classname,
           'imports': sorted(imports),
@@ -75,6 +76,7 @@ class Compiler(object):
           'memoize': self.memoize,
           'methods': methods,
           'scopes_wanted': scopes_wanted,
+          'seeds_wanted': seeds_wanted,
           'starting_rule': self.grammar.starting_rule,
         }
 
@@ -174,8 +176,9 @@ class Compiler(object):
         return self._inv('_h_bind_all', as_callable, [rule, ', ', node[2]])
 
     def _leftrec_(self, node, as_callable):
+        var = lit.encode(node[2])
         val = self._gen(node[1], True)
-        return self._inv('_h_leftrec', as_callable, [val])
+        return self._inv('_h_leftrec', as_callable, [val, ', ', var])
 
     def _lit_(self, node, as_callable):
         arg = lit.encode(node[1])

@@ -29,7 +29,8 @@ def check_for_left_recursion(ast):
     for _, name, body in ast[1]:
         rules[name] = body
     for _, name, body in ast[1]:
-        has_lr = _check_lr(name, body, rules)
+        seen = set()
+        has_lr = _check_lr(name, body, rules, seen)
         if has_lr:
             lr_rules.add(name)
     return lr_rules
@@ -40,13 +41,13 @@ def rewrite_left_recursion(ast):
     new_rules = []
     for rule in ast[1]:
         if rule[1] in lr_rules:
-            new_rules.append([rule[0], rule[1], ['leftrec', rule[2]]])
+            new_rules.append([rule[0], rule[1], ['leftrec', rule[2], rule[1]]])
         else:
             new_rules.append(rule)
     return ['rules', new_rules]
 
 
-def _check_lr(name, node, rules):
+def _check_lr(name, node, rules, seen):
     ty = node[0]
     if ty == 'action':
         return None
@@ -55,11 +56,15 @@ def _check_lr(name, node, rules):
             return True  # Direct recursion.
         if node[1] in ('anything', 'end'):
             return False
-        return _check_lr(name, rules[node[1]], rules)
+        if node[1] in seen:
+            # We've hit left recursion on a different rule, so, no.
+            return False
+        seen.add(node[1])
+        return _check_lr(name, rules[node[1]], rules, seen)
     if ty == 'capture':
-        return _check_lr(name, node[1], rules)
+        return _check_lr(name, node[1], rules, seen)
     if ty == 'choice':
-        return any(_check_lr(name, n, rules) for n in node[1])
+        return any(_check_lr(name, n, rules, seen) for n in node[1])
     if ty == 'empty':
         return None
     if ty == 'eq':
@@ -67,39 +72,41 @@ def _check_lr(name, node, rules):
         # we would've stopped already, so this can't recurse either.
         return None
     if ty == 'label':
-        return _check_lr(name, node[1], rules)
+        return _check_lr(name, node[1], rules, seen)
     if ty == 'lit':
         return False
     if ty == 'not':
-        return _check_lr(name, node[1], rules)
+        return _check_lr(name, node[1], rules, seen)
     if ty == 'opt':
-        return _check_lr(name, node[1], rules)
+        return _check_lr(name, node[1], rules, seen)
     if ty == 'paren':
-        return _check_lr(name, node[1], rules)
+        return _check_lr(name, node[1], rules, seen)
     if ty == 'plus':
-        return _check_lr(name, node[1], rules)
+        return _check_lr(name, node[1], rules, seen)
     if ty == 'pos':
         return None
     if ty == 'pred':
         return None
+    if ty == 'range':
+        return False
     if ty == 'rule':
         assert False, 'unexpected `rule` node'
     if ty == 'rules':
         assert False, 'unexpected `rules` node'
     if ty == 'scope':
         for subnode in node[1]:
-            r = _check_lr(name, subnode, rules)
+            r = _check_lr(name, subnode, rules, seen)
             if r is not None:
                 return r
         return False
     if ty == 'seq':
         for subnode in node[1]:
-            r = _check_lr(name, subnode, rules)
+            r = _check_lr(name, subnode, rules, seen)
             if r is not None:
                 return r
         return False
     if ty == 'star':
-        return _check_lr(name, node[1], rules)
+        return _check_lr(name, node[1], rules, seen)
 
     assert False, 'unexpected AST node type %s' % ty
 
@@ -136,9 +143,9 @@ def add_builtin_vars(node):
 
         if body[0] == 'leftrec':
             if len(new_choices) > 1:
-                return ['rule', name, ['leftrec', ['choice', new_choices]]]
+                return ['rule', name, ['leftrec', ['choice', new_choices], body[2]]]
             else:
-                return ['rule', name, ['leftrec', new_choices[0]]]
+                return ['rule', name, ['leftrec', new_choices[0], body[2]]]
         elif len(new_choices) > 1:
             return ['rule', name, ['choice', new_choices]]
         else:
@@ -210,6 +217,8 @@ def rename(node, prefix):
         return [node[0], rename(node[1], prefix)]
     elif node[0] == 'label':
         return [node[0], rename(node[1], prefix), node[2]]
+    elif node[0] == 'leftrec':
+        return [node[0], rename(node[1], prefix), prefix + node[2]]
     elif node[0] == 'scope':
         return [node[0], [rename(n, prefix) for n in node[1]],
                 node[2]]
@@ -237,7 +246,7 @@ def simplify(node):
         return [node_type, simplify(node[1])]
     elif node_type == 'paren':
         return simplify(node[1])
-    elif node_type in ('label', 'memo'):
+    elif node_type in ('label', 'leftrec', 'memo'):
         return [node_type, simplify(node[1]), node[2]]
     elif node_type == 'scope':
         if len(node[1]) == 1:
@@ -305,7 +314,7 @@ def _flatten(old_name, old_node, should_flatten):
             new_node = [old_type, new_subnodes, old_node[2]]
         else:
             new_node = [old_type, new_subnodes]
-    elif old_type in ('label',):
+    elif old_type in ('label', 'leftrec'):
         new_name = '_s_%s_%s' % (old_name[3:], old_type[0])
         new_subnode, new_subrules = _flatten(new_name, old_node[1],
                                              should_flatten)
@@ -315,7 +324,7 @@ def _flatten(old_name, old_node, should_flatten):
         else:
             new_node = [old_type, new_subnode, old_node[2]]
         new_rules += new_subrules
-    elif old_type in ('capture', 'leftrec', 'memo', 'not', 'opt', 'paren',
+    elif old_type in ('capture', 'memo', 'not', 'opt', 'paren',
                       'plus', 're', 'star'):
         new_name = '_s_%s_%s' % (old_name[3:], old_type[0])
         new_subnode, new_subrules = _flatten(new_name, old_node[1],
