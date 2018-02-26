@@ -149,6 +149,12 @@ defs = {
         '_h_get': {
             'lines': ['v', 'def _h_get(self, var):',
                            '    return self._scopes[-1][1][var]']},
+        '_h_leftrec': {
+            'lines': ['v', 'def _h_leftrec(self, rule):',
+                           '    self.val = None',
+                           '    self.failed = True',
+                           '    if self.pos >= self.errpos:',
+                           '        self.errpos = self.pos']},
         '_h_memo': {
             'lines': ['v', 'def _h_memo(self, rule, rule_name):',
                            '    r = self._cache.get((rule_name, self.pos))',

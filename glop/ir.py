@@ -22,17 +22,29 @@ class Grammar(object):
         self.starting_rule = self.rules[0][1]
 
 
-def check_for_left_recursion(grammar):
+def check_for_left_recursion(ast):
     """Returns a list of all potentially left-recursive rules."""
     lr_rules = set()
     rules = {}
-    for _, name, body in grammar.rules:
+    for _, name, body in ast[1]:
         rules[name] = body
-    for _, name, body in grammar.rules:
+    for _, name, body in ast[1]:
         has_lr = _check_lr(name, body, rules)
         if has_lr:
             lr_rules.add(name)
     return lr_rules
+
+
+def rewrite_left_recursion(ast):
+    lr_rules = check_for_left_recursion(ast)
+    new_rules = []
+    for rule in ast[1]:
+        if rule[1] in lr_rules:
+            new_rules.append([rule[0], rule[1], ['leftrec', rule[2]]])
+        else:
+            new_rules.append(rule)
+    return ['rules', new_rules]
+
 
 def _check_lr(name, node, rules):
     ty = node[0]
@@ -107,50 +119,64 @@ def memoize(ast, rules_to_memoize):
 def add_builtin_vars(node):
     """Returns a new AST rewritten to support the _* vars."""
     if node[0] == 'rules':
-        new_rules = ['rules', [add_builtin_vars(rule) for rule in node[1]]]
-        # import pdb; pdb.set_trace()
-        return new_rules
+        return ['rules', [add_builtin_vars(rule) for rule in node[1]]]
     elif node[0] == 'rule':
-        rule_name = node[1]
-        if node[2][0] == 'choice':
-            choices = node[2][1]
-        else:
-            choices = [node[2]]
-        new_choices = []
-        for seq in choices:
-            tag = seq[0]
-            if tag not in ('seq', 'scope'):
-                new_choices.append(seq)
-                continue
-
-            terms = seq[1]
-            all_is_needed = _var_is_needed('_', terms[-1])
-            new_terms = []
-            for i, term in enumerate(terms[:-1]):
-                pos_var = '_%d' % (i + 1)
-                pos_is_needed = (all_is_needed or
-                                 any(_var_is_needed(pos_var, st)
-                                     for st in terms[i+1:]))
-                if pos_is_needed:
-                    tag = 'scope'
-                    new_terms.append(['label', term, pos_var])
-                else:
-                    new_terms.append(term)
-            if all_is_needed:
-                tag = 'scope'
-                new_terms.append(['label_all', rule_name, len(terms) - 1])
-            new_terms.append(terms[-1])
-            if tag == 'scope':
-                new_choices.append([tag, new_terms, rule_name])
+        name = node[1]
+        body = node[2]
+        if body[0] == 'leftrec':
+            if body[1][0] == 'choice':
+                choices = body[1][1]
             else:
-                new_choices.append([tag, new_terms])
-
-        if len(new_choices) > 1:
-            return ['rule', rule_name, ['choice', new_choices]]
+                choices = [body[1]]
+        elif body[0] == 'choice':
+            choices = body[1]
         else:
-            return ['rule', rule_name, new_choices[0]]
+            choices = [body]
+        new_choices = _rewrite_choices(name, choices)
+
+        if body[0] == 'leftrec':
+            if len(new_choices) > 1:
+                return ['rule', name, ['leftrec', ['choice', new_choices]]]
+            else:
+                return ['rule', name, ['leftrec', new_choices[0]]]
+        elif len(new_choices) > 1:
+            return ['rule', name, ['choice', new_choices]]
+        else:
+            return ['rule', name, new_choices[0]]
     else:
         return node
+
+
+def _rewrite_choices(rule_name, choices):
+    new_choices = []
+    for seq in choices:
+        tag = seq[0]
+        if tag not in ('seq', 'scope'):
+            new_choices.append(seq)
+            continue
+
+        terms = seq[1]
+        all_is_needed = _var_is_needed('_', terms[-1])
+        new_terms = []
+        for i, term in enumerate(terms[:-1]):
+            pos_var = '_%d' % (i + 1)
+            pos_is_needed = (all_is_needed or
+                             any(_var_is_needed(pos_var, st)
+                                 for st in terms[i+1:]))
+            if pos_is_needed:
+                tag = 'scope'
+                new_terms.append(['label', term, pos_var])
+            else:
+                new_terms.append(term)
+        if all_is_needed:
+            tag = 'scope'
+            new_terms.append(['label_all', rule_name, len(terms) - 1])
+        new_terms.append(terms[-1])
+        if tag == 'scope':
+            new_choices.append([tag, new_terms, rule_name])
+        else:
+            new_choices.append([tag, new_terms])
+    return new_choices
 
 
 def _var_is_needed(name, node):
@@ -289,8 +315,8 @@ def _flatten(old_name, old_node, should_flatten):
         else:
             new_node = [old_type, new_subnode, old_node[2]]
         new_rules += new_subrules
-    elif old_type in ('capture', 'memo', 'not', 'opt', 'paren', 'plus', 're',
-                      'star'):
+    elif old_type in ('capture', 'leftrec', 'memo', 'not', 'opt', 'paren',
+                      'plus', 're', 'star'):
         new_name = '_s_%s_%s' % (old_name[3:], old_type[0])
         new_subnode, new_subrules = _flatten(new_name, old_node[1],
                                              should_flatten)

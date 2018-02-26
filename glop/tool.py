@@ -52,12 +52,12 @@ def main(host=None, argv=None):
             _write(host, args.output, contents)
             return 0
 
-        lr_rules = check_for_left_recursion(grammar)
-        if lr_rules:
-            for rule in lr_rules:
-                host.print_('Rule `%s` is left-recursive.' % rule,
-                            stream=host.stderr)
-            return 1
+        #lr_rules = check_for_left_recursion(grammar.ast)
+        #if lr_rules:
+        #    for rule in lr_rules:
+        #        host.print_('Rule `%s` is left-recursive.' % rule,
+        #                    stream=host.stderr)
+        #    return 1
 
         if args.compile:
             comp = Compiler(grammar, args.class_name, args.main, args.memoize)
