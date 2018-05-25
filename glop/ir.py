@@ -419,8 +419,6 @@ def _merge_choices(nodes):
 
 
 def _post(re_expr, op):
-    if re_expr[0] in ('(', '[') or len(re_expr) == 1:
-        return re_expr + op
     return '(%s)%s' % (re_expr, op)
 
 
