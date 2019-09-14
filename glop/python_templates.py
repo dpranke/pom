@@ -343,7 +343,7 @@ defs = {
                          'arg_parser.add_argument(\'file\', nargs=\'?\')',
                          'args = arg_parser.parse_args(argv)',
                          '',
-                         'if not args.file or args.file[1] == \'-\':',
+                         'if not args.file or args.file[0] == \'-\':',
                          ['iv', 'fname = \'<stdin>\'',
                                 'fp = stdin'],
                          'elif not exists(args.file):',
