@@ -27,7 +27,6 @@ class Parser(object):
         self.errpos = 0
         self._regexps = {}
         self._scopes = []
-        self._seeds = {}
 
     def parse(self):
         self._r_grammar()
@@ -42,33 +41,30 @@ class Parser(object):
                                   lambda: self._h_succeed(self._h_get('_1'))])
 
     def _r_expr(self):
-        self._h_leftrec(self._s_expr_l, '_r_expr')
+        self._h_choose([self._s_expr_c0,
+                        self._s_expr_c1,
+                        self._s_expr_c2,
+                        self._s_expr_c3])
 
-    def _s_expr_l(self):
-        self._h_choose([self._s_expr_l_c0,
-                        self._s_expr_l_c1,
-                        self._s_expr_l_c2,
-                        self._s_expr_l_c3])
-
-    def _s_expr_l_c0(self):
-        self._h_scope('expr', [lambda: self._h_bind(self._r_expr, '_1'),
+    def _s_expr_c0(self):
+        self._h_scope('expr', [lambda: self._h_bind(lambda: self._h_capture(self._r_num), '_1'),
                                lambda: self._h_ch('*'),
                                lambda: self._h_bind(self._r_expr, '_3'),
                                lambda: self._h_succeed([self._h_get('_1'), '*', self._h_get('_3')])])
 
-    def _s_expr_l_c1(self):
-        self._h_scope('expr', [lambda: self._h_bind(self._r_expr, '_1'),
+    def _s_expr_c1(self):
+        self._h_scope('expr', [lambda: self._h_bind(lambda: self._h_capture(self._r_num), '_1'),
                                lambda: self._h_ch('+'),
                                lambda: self._h_bind(self._r_expr, '_3'),
                                lambda: self._h_succeed([self._h_get('_1'), '+', self._h_get('_3')])])
 
-    def _s_expr_l_c2(self):
-        self._h_scope('expr', [lambda: self._h_bind(self._r_expr, '_1'),
+    def _s_expr_c2(self):
+        self._h_scope('expr', [lambda: self._h_bind(lambda: self._h_capture(self._r_num), '_1'),
                                lambda: self._h_ch('-'),
                                lambda: self._h_bind(self._r_expr, '_3'),
                                lambda: self._h_succeed([self._h_get('_1'), '-', self._h_get('_3')])])
 
-    def _s_expr_l_c3(self):
+    def _s_expr_c3(self):
         self._h_scope('expr', [lambda: self._h_bind(lambda: self._h_capture(self._r_num), '_1'),
                                lambda: self._h_succeed(self._h_get('_1'))])
 
@@ -136,25 +132,6 @@ class Parser(object):
 
     def _h_get(self, var):
         return self._scopes[-1][1][var]
-
-    def _h_leftrec(self, rule, rule_name):
-        pos = self.pos
-        seed = self._seeds.get((rule_name, self.pos))
-        if seed:
-            self.val, self.failed, self.pos = seed
-            return
-        current = (None, True, self.pos)
-        self._seeds[(rule_name, pos)] = current
-        while True:
-            rule()
-            if self.pos > current[2]:
-                current = (self.val, self.failed, self.pos)
-                self._seeds[(rule_name, pos)] = current
-                self.pos = pos
-            else:
-                self._seeds.pop(rule_name, pos)
-                self.val, self.failed, self.pos = current
-                return
 
     def _h_re(self, pattern):
         try:

@@ -1,9 +1,8 @@
-grammar = sp expr sp end       -> _2
+grammar = expr '\n' end -> _1
 
-expr    = expr sp '+' sp expr -> [_1, '+', _5]
-        | expr sp '-' sp expr -> [_1, '-', _5]
-        | {num}                -> _1
+expr    = expr '*' expr -> [_1, '*', _3]
+        | expr '+' expr -> [_1, '+', _3]
+        | expr '-' expr -> [_1, '-', _3]
+        | {num}         -> _1
 
 num     = ('0'..'9')+
-
-sp      = (' ' | '\n')*

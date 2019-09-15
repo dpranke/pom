@@ -53,19 +53,19 @@ class Parser(object):
     def _s_expr_l_c0(self):
         self._h_scope('expr', [lambda: self._h_bind(self._r_expr, '_1'),
                                lambda: self._h_ch('*'),
-                               lambda: self._h_bind(self._r_expr, '_3'),
+                               lambda: self._h_bind(lambda: self._h_capture(self._r_num), '_3'),
                                lambda: self._h_succeed([self._h_get('_1'), '*', self._h_get('_3')])])
 
     def _s_expr_l_c1(self):
         self._h_scope('expr', [lambda: self._h_bind(self._r_expr, '_1'),
                                lambda: self._h_ch('+'),
-                               lambda: self._h_bind(self._r_expr, '_3'),
+                               lambda: self._h_bind(lambda: self._h_capture(self._r_num), '_3'),
                                lambda: self._h_succeed([self._h_get('_1'), '+', self._h_get('_3')])])
 
     def _s_expr_l_c2(self):
         self._h_scope('expr', [lambda: self._h_bind(self._r_expr, '_1'),
                                lambda: self._h_ch('-'),
-                               lambda: self._h_bind(self._r_expr, '_3'),
+                               lambda: self._h_bind(lambda: self._h_capture(self._r_num), '_3'),
                                lambda: self._h_succeed([self._h_get('_1'), '-', self._h_get('_3')])])
 
     def _s_expr_l_c3(self):
